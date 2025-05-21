@@ -10,9 +10,9 @@ const isActive = (path) => route.path === path || route.path.startsWith(path + '
   <aside class="sidebar">
     <h3>마이페이지</h3>
     <router-link
-        to="/mypage"
+        to="/mypage/test"
         class="menu-link"
-        :class="{ active: isActive('/mypage') }"
+        :class="{ active: isActive('/mypage/test') }"
     >검사 결과 및 통계</router-link>
 
     <router-link

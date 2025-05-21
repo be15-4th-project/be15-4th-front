@@ -17,90 +17,94 @@ const formattedDate = computed(() =>
 </script>
 
 <template>
-  <article class="result-card">
-    <div class="card-left">
-      <div class="tags">
-        <span class="badge badge-strong">강점: {{ highestCategory }}</span>
-        <span class="badge badge-weak">약점: {{ lowestCategory }}</span>
-      </div>
-      <div class="score">총점: {{ totalScore }}점</div>
+  <article class="result-row">
+    <div class="info-left">
+      <span class="badge badge-strong">강점: {{ highestCategory }}</span>
+      <span class="badge badge-weak">약점: {{ lowestCategory }}</span>
     </div>
-    <div class="card-right">
-      <time class="datetime" :datetime="createdAt">{{ formattedDate }}</time>
-      <router-link
-          :to="`/mypage/test/${testResultId}`"
-          class="btn-detail"
-          :aria-label="`${formattedDate} 검사 상세 보기`"
-      >
-        상세 보기
-      </router-link>
+
+    <div class="score">
+      {{ totalScore }}점
     </div>
+
+    <div class="date">
+      {{ formattedDate }}
+    </div>
+
+    <router-link
+        :to="`/mypage/test/${testResultId}`"
+        class="btn-detail"
+        :aria-label="`${formattedDate} 검사 상세 보기`"
+    >
+      상세 보기
+    </router-link>
   </article>
 </template>
 
 <style scoped>
-.result-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  display: flex;
-  justify-content: space-between;
+.result-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 140px 120px;
   align-items: center;
-  transition: box-shadow 0.2s ease;
-}
-.result-card:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-family: 'Pretendard', sans-serif;
 }
 
-.card-left {
+.info-left {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.tags {
-  display: flex;
-  gap: 0.5rem;
-}
-.badge {
-  padding: 0.3rem 0.7rem;
-  font-size: 0.85rem;
-  border-radius: 999px;
-  font-weight: 500;
-}
-.badge-strong {
-  background-color: #e0f2fe;
-  color: #2563eb;
-}
-.badge-weak {
-  background-color: #fef2f2;
-  color: #d32f2f;
-}
-.score {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #111;
-}
-.card-right {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 0.5rem;
 }
-.datetime {
+
+.badge {
+  padding: 0.35rem 0.9rem;
   font-size: 0.85rem;
-  color: #888;
-}
-.btn-detail {
-  background: #3b82f6;
-  color: #fff;
-  padding: 0.45rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  text-decoration: none;
+  font-weight: 500;
+  border-radius: 9999px;
   white-space: nowrap;
 }
+
+.badge-strong {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+}
+
+.badge-weak {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.score {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  text-align: right;
+}
+
+.date {
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-align: right;
+}
+
+.btn-detail {
+  background: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  text-align: center;
+  transition: background 0.2s;
+}
+
 .btn-detail:hover {
-  background: #1e3a8a;
+  background: #1e40af;
 }
 </style>

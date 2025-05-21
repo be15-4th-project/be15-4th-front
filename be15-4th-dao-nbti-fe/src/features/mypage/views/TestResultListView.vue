@@ -5,7 +5,30 @@ import ResultCard from '@/features/mypage/components/ResultCard.vue'
 import RadarChart from '@/features/mypage/components/RadarChart.vue'
 import LineChart from '@/features/mypage/components/LineChart.vue'
 
-const resultList = ref([])
+const resultList = ref([
+  {
+    testResultId: 1,
+    createdAt: '2025-05-10T10:00:00',
+    highestCategory: '지각 추론',
+    lowestCategory: '작업 기억',
+    totalScore: 85
+  },
+  {
+    testResultId: 2,
+    createdAt: '2025-04-25T14:30:00',
+    highestCategory: '언어 이해',
+    lowestCategory: '공간 지각력',
+    totalScore: 78
+  },
+  {
+    testResultId: 3,
+    createdAt: '2025-04-10T11:20:00',
+    highestCategory: '시사 상식',
+    lowestCategory: '처리 속도',
+    totalScore: 82
+  }
+])
+
 const loading = ref(false)
 
 const year = ref('')
@@ -18,6 +41,14 @@ const radarLabels = ['언어 이해', '시사 상식', '지각 추론', '공간 
 const radarScores = [6, 5, 1, 6, 4, 5]
 const lineLabels = ['03-01', '03-10', '03-20', '04-01', '04-10', '04-20', '05-01', '05-10']
 const lineScores = [24, 26, 30, 25, 16, 18, 21, 33]
+const categoryIcons = {
+  '언어 이해': new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
+  '시사 상식': new URL('@/assets/images/common_sense.png', import.meta.url).href,
+  '지각 추론': new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
+  '공간 지각력': new URL('@/assets/images/spatial_perception.png', import.meta.url).href,
+  '작업 기억': new URL('@/assets/images/work_memory.png', import.meta.url).href,
+  '처리 속도': new URL('@/assets/images/processing_speed.png', import.meta.url).href
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -42,7 +73,7 @@ const sortedList = computed(() => {
   })
 })
 
-onMounted(fetchData)
+// onMounted(fetchData)
 </script>
 
 <template>
@@ -57,14 +88,21 @@ onMounted(fetchData)
         </div>
         <div class="grid">
           <div class="grid-item" v-for="(label, index) in radarLabels" :key="label">
-            <div class="score-header">
-              <div class="category-title">{{ label }}</div>
-              <div class="score-num">{{ radarScores[index] }}점</div>
+            <img
+                :src="categoryIcons[label]"
+                alt=""
+                class="category-icon"
+            />
+            <div class="score-content">
+              <div class="score-header">
+                <div class="category-title">{{ label }}</div>
+                <div class="score-num">{{ radarScores[index] }}점</div>
+              </div>
+              <div class="score-bar">
+                <div class="bar" :style="{ width: (radarScores[index] / 6 * 100) + '%' }"></div>
+              </div>
+              <div class="category-content">{{ label }} 설명 내용</div>
             </div>
-            <div class="score-bar">
-              <div class="bar" :style="{ width: (radarScores[index] / 6 * 100) + '%' }"></div>
-            </div>
-            <div class="category-content">{{ label }} 설명 내용</div>
           </div>
         </div>
         <div class="ai-summary-card">
@@ -151,6 +189,14 @@ onMounted(fetchData)
   border-radius: 16px;
   padding: 1.5rem;
   border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.score-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 .score-header {
   display: flex;
@@ -212,4 +258,18 @@ onMounted(fetchData)
   border-radius: 6px;
   cursor: pointer;
 }
+.category-title {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.1em;
+  color: #1e3a8a;
+  gap: 0.4rem;
+}
+.category-icon {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
 </style>

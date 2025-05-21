@@ -15,6 +15,14 @@ const radarLabels = ['언어 이해', '시사 상식', '지각 추론', '공간 
 const radarScores = ref([])
 const lineLabels = ref([])
 const lineScores = ref([])
+const categoryIcons = {
+  '언어 이해': new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
+  '시사 상식': new URL('@/assets/images/common_sense.png', import.meta.url).href,
+  '지각 추론': new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
+  '공간 지각력': new URL('@/assets/images/spatial_perception.png', import.meta.url).href,
+  '작업 기억': new URL('@/assets/images/work_memory.png', import.meta.url).href,
+  '처리 속도': new URL('@/assets/images/processing_speed.png', import.meta.url).href
+}
 
 const fetchDetail = async () => {
   loading.value = true
@@ -54,14 +62,21 @@ onMounted(fetchDetail)
         <!-- 점수 그리드 -->
         <div class="grid">
           <div v-for="(label, index) in radarLabels" :key="label" class="grid-item">
-            <div class="score-header">
-              <div class="category-title">{{ label }}</div>
-              <div class="score-num">{{ radarScores[index] }}점</div>
+            <img
+                :src="categoryIcons[label]"
+                alt=""
+                class="category-icon"
+            />
+            <div class="score-content">
+              <div class="score-header">
+                <div class="category-title">{{ label }}</div>
+                <div class="score-num">{{ radarScores[index] }}점</div>
+              </div>
+              <div class="score-bar">
+                <div class="bar" :style="{ width: (radarScores[index] / 6 * 100) + '%' }"></div>
+              </div>
+              <div class="category-content">{{ label }} 설명 내용</div>
             </div>
-            <div class="score-bar">
-              <div class="bar" :style="{ width: (radarScores[index] / 6 * 100) + '%' }"></div>
-            </div>
-            <div class="category-content">{{ label }} 설명</div>
           </div>
         </div>
 
@@ -122,7 +137,7 @@ onMounted(fetchDetail)
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
   gap: 1.8rem;
   margin-bottom: 2rem;
 }
@@ -131,6 +146,14 @@ onMounted(fetchDetail)
   border-radius: 16px;
   padding: 1.5rem;
   border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.score-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 .score-header {
   display: flex;
@@ -168,4 +191,18 @@ onMounted(fetchDetail)
   font-size: 0.95rem;
   line-height: 1.6;
 }
+.category-title {
+  display: flex;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #1e3a8a;
+  gap: 0.4rem;
+}
+.category-icon {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
 </style>
