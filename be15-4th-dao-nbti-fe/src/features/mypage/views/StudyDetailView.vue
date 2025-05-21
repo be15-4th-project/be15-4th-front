@@ -6,6 +6,14 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 const studyId = route.params.id
 const loading = ref(false)
+const categoryIcons = {
+  '언어 이해': new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
+  '시사 상식': new URL('@/assets/images/common_sense.png', import.meta.url).href,
+  '지각 추론': new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
+  '공간 지각력': new URL('@/assets/images/spatial_perception.png', import.meta.url).href,
+  '작업 기억': new URL('@/assets/images/work_memory.png', import.meta.url).href,
+  '처리 속도': new URL('@/assets/images/processing_speed.png', import.meta.url).href
+}
 
 const detail = ref({
   studyId: studyId,
@@ -76,7 +84,7 @@ function submitObjection() {
       <div v-if="loading">불러오는 중...</div>
       <div v-else class="card">
         <div class="summary-box">
-          <div><strong>분야:</strong> {{ detail.topCategoryName }}</div>
+          <div class="category"><img :src="categoryIcons[detail.topCategoryName]" alt="" class="category-icon" /><strong>분야:</strong> {{ detail.topCategoryName }}</div>
           <div><strong>정답:</strong> {{ detail.correctCount }} / {{ detail.totalCount }}문항</div>
         </div>
 
@@ -173,6 +181,7 @@ function submitObjection() {
 }
 .summary-box {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
   font-size: 1rem;
@@ -249,5 +258,15 @@ function submitObjection() {
 .objection-button:hover {
   color: #1e3a8a;
   text-decoration: underline;
+}
+.category {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.category-icon {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
 }
 </style>
