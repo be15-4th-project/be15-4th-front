@@ -1,19 +1,49 @@
 <script setup>
 import Header from "@/components/layout/Header.vue";
-import AdminSidebar from "@/features/admin/components/AdminSidebar.vue";
 import {ref} from "vue";
+import Sidebar from "@/components/layout/Sidebar.vue";
 
 const sidebarVisible = ref(true);
 </script>
 
 <template>
-<Header></Header>
-  <main class="main-content" >
-    <AdminSidebar v-if="sidebarVisible"/>
-    <RouterView/>
-  </main>
+  <div class="layout-default">
+    <!-- 상단 헤더 섹션 -->
+    <Header/>
+    <!-- 좌측 사이드바 + 콘텐츠 섹션 -->
+    <div class="content-wrapper">
+      <Sidebar/>
+      <main class="main-content" >
+        <RouterView/>
+      </main>
+    </div>
+  </div>
 </template>
 
 <style scoped>
+.layout-default {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: #f9f9f9;
+  overflow: hidden;
+}
+
+/* 오른쪽 전체 (헤더 + 메인) */
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: white;
+}
 
 </style>
