@@ -29,7 +29,7 @@ watch(() => filter.value.parentCategory, () => {
   filter.value.category = ''
 });
 
-// 상위 분야 불러오기
+// 분야 불러오기
 const fetchCategories = async () => {
   const response = await api.get('/admin/categories')
   parentCategories.value = response.data.data.parentCategories;
@@ -162,7 +162,7 @@ const paginationRange = computed(() => {
             <td>{{ problem.parentCategoryName }}</td>
             <td>{{ problem.childCategoryName }}</td>
             <td>레벨 {{ problem.level }}</td>
-            <td>{{ problem.answerType }}</td>
+            <td>{{ problem.answerTypeDescription }}</td>
             <td><button class="btn" @click="goToDetail(problem.problemId)">상세보기</button></td>
           </tr>
 

@@ -14,6 +14,11 @@ export const adminRoutes = [
         name: '문제 관리',
         component: () => import('@/features/admin/views/ProblemSearchView.vue'),
     },
+    {
+        path: '/admin/problems/:problemId',
+        name: '문제 상세 조회',
+        component: () => import('@/features/admin/views/ProblemDetailsView.vue')
+    }
 
         // path: '/admin',
         // component: () => import('@/features/admin/components/AdminLayout.vue'),
