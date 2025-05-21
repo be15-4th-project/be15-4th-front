@@ -12,7 +12,7 @@ export default [
         component: LayoutMypage,
         children: [
             { path: '', name: 'TestResultListView', component: TestResultListView },
-            // { path: 'test/:id', name: 'TestDetailView', component: TestDetailView },
+            { path: 'test/:id', name: 'TestDetailView', component: TestDetailView },
             // { path: 'study', name: 'StudyListView', component: StudyListView },
             // { path: 'study/:id', name: 'StudyDetailView', component: StudyDetailView },
             // { path: 'objection', name: 'ObjectionListView', component: ObjectionListView },

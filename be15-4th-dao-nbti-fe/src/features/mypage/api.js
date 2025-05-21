@@ -6,7 +6,7 @@ export const fetchTestResultList = (params = {}) => {
 }
 
 // 검사 결과 상세 조회 API
-// export const fetchTestDetail = (id) => api.get(`/test-result/${id}`)
+export const fetchTestDetail = (id) => api.get(`/test-result/${id}`)
 /*
 export const fetchStudyResults = () => api.get('/mypage/studies')
 export const fetchStudyDetail = (id) => api.get(`/mypage/studies/${id}`)
