@@ -7,23 +7,45 @@
       <RouterLink to ="/" class="link">검사</RouterLink>
       <RouterLink to="/" class="link">학습</RouterLink>
       <template v-if="authStore.isAuthenticated">
-        <RouterLink to ="/" class="div">마이페이지</RouterLink>
-        <RouterLink to ="/" class="div">로그아웃</RouterLink>
+        <RouterLink to ="/" class="link">마이페이지</RouterLink>
+        <div  class="button" @click = "handleLogout">로그아웃</div>
       </template>
      <template v-else>
-       <RouterLink to ="/" class="link">로그인</RouterLink>
+       <RouterLink to ="/login" class="link">로그인</RouterLink>
        <RouterLink to ="/" class="div">회원가입</RouterLink>
      </template>
     </div>
   </div>
+  <small-modal :visible="modalVisible" :message="modalMessage" @cancel="closeModal" />
 </template>
 
 <script setup>
 import {useAuthStore} from "@/stores/auth.js";
 import {useRouter} from "vue-router";
+import {logoutUser} from "@/features/user/api.js";
+import SmallModal from "@/components/common/SmallModal.vue";
+import {ref} from "vue";
 
 const router = useRouter()
 const authStore = useAuthStore()
+const modalVisible = ref(false);
+const modalMessage = ref("로그아웃 되었습니다.")
+
+const handleLogout = async ()=>{
+  try {
+    await logoutUser()
+  } catch (e) {
+    console.error('로그아웃 API 실패', e)
+  }
+  modalVisible.value = true;
+  authStore.clearAuth();
+}
+
+const closeModal = async ()=>{
+
+  modalVisible.value = false;
+  await router.push('/')
+}
 
 </script>
 
@@ -90,5 +112,11 @@ const authStore = useAuthStore()
   position: relative;
   white-space: nowrap;
   width: fit-content;
+}
+
+.button {
+  text-decoration: underline;  /* 밑줄 */
+  cursor: pointer;             /* 마우스를 올리면 포인터로 변경 */
+  color: #333333;              /* 선택적으로 링크 스타일 색상 */
 }
 </style>
