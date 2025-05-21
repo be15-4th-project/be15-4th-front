@@ -4,65 +4,91 @@
       <div class="text-wrapper">두뇌 트레이닝</div>
     </div>
     <div class="navbar">
-      <div class="link">검사</div>
-      <div class="link">학습</div>
-      <div class="link">로그인</div>
-      <div class="link">회원가입</div>
+      <RouterLink to ="/" class="link">검사</RouterLink>
+      <RouterLink to="/" class="link">학습</RouterLink>
+      <template v-if="authStore.isAuthenticated">
+        <RouterLink to ="/" class="div">마이페이지</RouterLink>
+        <RouterLink to ="/" class="div">로그아웃</RouterLink>
+      </template>
+     <template v-else>
+       <RouterLink to ="/" class="link">로그인</RouterLink>
+       <RouterLink to ="/" class="div">회원가입</RouterLink>
+     </template>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: "Header",
-};
+<script setup>
+import {useAuthStore} from "@/stores/auth.js";
+import {useRouter} from "vue-router";
+
+const router = useRouter()
+const authStore = useAuthStore()
+
 </script>
 
 <style>
-:root {
-  --inter-bold-font-family: "Inter", sans-serif;
-  --inter-bold-font-size: 24px;
-  --inter-bold-font-weight: 700;
-
-  --semantic-link-font-family: "Noto Sans KR", sans-serif;
-  --semantic-link-font-size: 16px;
-  --semantic-link-font-weight: 400;
-}
-
 .header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 32px;
   background-color: #ffffff;
-  border-bottom: 1px solid #dddddd;
+  justify-content: space-between; /* 핵심 */
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: #dddddd;
+  display: flex;
+  gap: 601.86px;
+  padding: 16px 32px 17px;
+  position: relative;
 }
 
 .header .container {
-  display: flex;
+  align-items: flex-start;
+  display: inline-flex;
+  flex: 0 0 auto;
   flex-direction: column;
-  justify-content: center;
+  position: relative;
 }
 
 .header .text-wrapper {
   color: #007bff;
-  font-family: var(--inter-bold-font-family);
-  font-size: var(--inter-bold-font-size);
-  font-weight: var(--inter-bold-font-weight);
+  font-size: 22.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: normal;
+  margin-top: -1.00px;
+  position: relative;
   white-space: nowrap;
+  width: fit-content;
 }
 
 .header .navbar {
-  display: flex;
+  align-items: flex-start;
+  display: inline-flex;
+  flex: 0 0 auto;
   gap: 16px;
+  margin-right: -8.86px;
+  padding: 0px 0px 0px 16px;
+  position: relative;
 }
 
 .header .link {
   color: #333333;
-  font-family: var(--semantic-link-font-family);
-  font-size: var(--semantic-link-font-size);
-  font-weight: var(--semantic-link-font-weight);
-  cursor: pointer;
+
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: normal;
+  margin-top: -1.00px;
+  position: relative;
   white-space: nowrap;
+  width: fit-content;
+}
+
+.header .div {
+  color: #333333;
+  margin-top: -1.00px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
 }
 </style>
