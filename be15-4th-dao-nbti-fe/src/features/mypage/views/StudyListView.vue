@@ -108,7 +108,7 @@ const sortedList = computed(() => {
               <div class="study-btn">
                 <span class="date">{{ item.solvedAt.slice(0, 10) }}</span>
                 <router-link
-                    :to="`/mypage/test/${testResultId}`"
+                    :to="`/mypage/study/${item.studyId}`"
                     class="btn-detail"
                     :aria-label="`${formattedDate} 검사 상세 보기`"
                 >상세 보기
