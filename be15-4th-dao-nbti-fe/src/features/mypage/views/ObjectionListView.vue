@@ -77,8 +77,8 @@ const filteredList = computed(() => {
           <td>{{ item.reason }}</td>
           <td>
               <span
-                  class="status-pill"
-                  :style="{ backgroundColor: statusColor[item.status] }"
+                  class="status"
+                  :class="item.status.toLowerCase()"
               >
                 {{ statusLabel[item.status] }}
               </span>
@@ -139,13 +139,32 @@ const filteredList = computed(() => {
   border-top: 1px solid #eee;
   font-size: 0.95rem;
 }
-.status-pill {
-  display: inline-block;
-  padding: 0.3rem 0.7rem;
+.status {
+  padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  color: #1e293b;
+  display: inline-block;
+}
+
+.status.pending {
+  background: #e0f3ff;
+  color: #007bff;
+}
+
+.status.accepted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.rejected {
+  background: #fdecea;
+  color: #d32f2f;
+}
+
+.status.processing {
+  background: #fff3cd;
+  color: #ff9800;
 }
 .detail-button {
   background: #3b82f6;
