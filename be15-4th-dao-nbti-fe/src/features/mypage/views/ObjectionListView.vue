@@ -1,4 +1,5 @@
 <script setup>
+// import BigModal from '@/components/common/BigModal.vue'
 import { ref, computed } from 'vue'
 
 const objectionList = ref([
@@ -38,6 +39,9 @@ const statusColor = {
   ACCEPTED: '#86efac',
   REJECTED: '#fca5a5'
 }
+
+const selectedObjection = ref(null)
+const modalVisible = ref(false)
 
 const filteredList = computed(() => {
   return filter.value
@@ -85,13 +89,39 @@ const filteredList = computed(() => {
           </td>
           <td>{{ item.createdAt.replace('T', ' ').slice(0, 16) }}</td>
           <td>
-            <button class="detail-button">상세 보기</button>
+            <button class="detail-button" @click="selectedObjection = item; modalVisible = true">상세 보기</button>
           </td>
         </tr>
         </tbody>
       </table>
     </section>
   </main>
+<!--  <BigModal
+      :visible="modalVisible"
+      @cancel="modalVisible = false"
+  >
+    <template #default>
+      <div class="modal-detail">
+        <div class="modal-header">
+          <h3>제출한 이의제기 내용</h3>
+          <span class="status" :class="selectedObjection?.status.toLowerCase()">
+            {{ statusLabel[selectedObjection?.status] }}
+          </span>
+        </div>
+        <div class="modal-meta">
+          <div><strong>분야</strong> {{ selectedObjection?.categoryName }}</div>
+          <div><strong>제출일시</strong> {{ selectedObjection?.createdAt.replace('T', ' ').slice(0, 16) }}</div>
+        </div>
+        <div class="modal-reason">
+          <p class="label">이의제기 사유</p>
+          <p class="value">{{ selectedObjection?.reason }}</p>
+        </div>
+        <div class="modal-confirm">
+          <button class="detail-button" @click="modalVisible = false">확인했어요</button>
+        </div>
+      </div>
+    </template>
+  </BigModal>-->
 </template>
 
 <style scoped>
@@ -149,22 +179,22 @@ const filteredList = computed(() => {
 
 .status.pending {
   background: #e0f3ff;
-  color: #007bff;
+  color: var(--color-main, #3b82f6);
 }
 
 .status.accepted {
   background: #e8f5e9;
-  color: #2e7d32;
+  color: var(--color-success, #2e7d32);
 }
 
 .status.rejected {
   background: #fdecea;
-  color: #d32f2f;
+  color: var(--color-error, #d32f2f);
 }
 
 .status.processing {
   background: #fff3cd;
-  color: #ff9800;
+  color: var(--color-warning, #ff9800);
 }
 .detail-button {
   background: #3b82f6;
@@ -177,5 +207,44 @@ const filteredList = computed(() => {
 }
 .detail-button:hover {
   background: #1e40af;
+}
+.modal-detail {
+  text-align: left;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-meta {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+  background: #f5f7fa;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+.modal-reason {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem;
+}
+.modal-reason .label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.modal-reason .value {
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.modal-confirm {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
 }
 </style>
