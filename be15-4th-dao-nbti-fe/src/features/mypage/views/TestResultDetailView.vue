@@ -48,7 +48,7 @@ onMounted(fetchDetail)
       <h2 class="section-title">검사 상세 내역</h2>
 
       <div class="top-bar">
-        <router-link to="/mypage" class="back-button">← 검사 결과 목록으로</router-link>
+        <router-link to="/mypage/test" class="back-button">← 검사 결과 목록으로</router-link>
         <div class="field-title">검사일: {{ detail?.createdAt?.slice(0, 10) }}</div>
       </div>
 
