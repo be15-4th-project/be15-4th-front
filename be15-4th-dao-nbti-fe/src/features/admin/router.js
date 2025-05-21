@@ -4,11 +4,15 @@ export const adminRoutes = [
         name: '관리자',
         component: () => import('@/features/admin/views/UserListView.vue')
     },
-
     {
         path: '/admin/manage-user',
         name: '회원 관리',
         component: () => import('@/features/admin/views/UserListView.vue')
+    },
+    {
+        path: '/admin/manage-problem',
+        name: '문제 관리',
+        component: () => import('@/features/admin/views/ProblemSearchView.vue'),
     },
 
         // path: '/admin',
@@ -34,11 +38,7 @@ export const adminRoutes = [
     //             name: '학습 결과',
     //             component: () => import('@/features/admin/pages/ManageUserStudyPage.vue'),
     //         },
-    //         {
-    //             path: 'manage-problem',
-    //             name: '문제 관리',
-    //             component: () => import('@/features/admin/pages/ManageProblemPage.vue'),
-    //         },
+
     //         {
     //             path: 'manage-objection',
     //             name: '이의 제기 관리',
