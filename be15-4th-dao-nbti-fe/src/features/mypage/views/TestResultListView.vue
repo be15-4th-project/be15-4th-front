@@ -4,37 +4,7 @@ import { fetchTestResultList } from '@/features/mypage/api.js'
 import ResultCard from '@/features/mypage/components/ResultCard.vue'
 import RadarChart from '@/features/mypage/components/RadarChart.vue'
 import LineChart from '@/features/mypage/components/LineChart.vue'
-
-const resultList = ref([
-  {
-    testResultId: 1,
-    createdAt: '2025-05-10T10:00:00',
-    highestCategory: '지각 추론',
-    lowestCategory: '작업 기억',
-    totalScore: 85
-  },
-  {
-    testResultId: 2,
-    createdAt: '2025-04-25T14:30:00',
-    highestCategory: '언어 이해',
-    lowestCategory: '공간 지각력',
-    totalScore: 78
-  },
-  {
-    testResultId: 3,
-    createdAt: '2025-04-10T11:20:00',
-    highestCategory: '시사 상식',
-    lowestCategory: '처리 속도',
-    totalScore: 82
-  }
-])
-
-const loading = ref(false)
-
-const year = ref('')
-const month = ref('')
-const sort = ref('desc')
-const yearOptions = [2025, 2024]
+import Pagination from "@/features/mypage/components/Pagination.vue";
 
 // 차트용 mock 데이터 (실제 연동 전까지 사용)
 const radarLabels = ['언어 이해', '시사 상식', '지각 추론', '공간 지각력', '작업 기억', '처리 속도']
@@ -50,34 +20,71 @@ const categoryIcons = {
   '처리 속도': new URL('@/assets/images/processing_speed.png', import.meta.url).href
 }
 
-const fetchData = async () => {
-  loading.value = true
-  try {
-    const params = {}
-    if (year.value) params.year = year.value
-    if (month.value) params.month = month.value
-    const res = await fetchTestResultList(params)
-    resultList.value = res.data.data.content || []
-  } catch (e) {
-    console.error('결과 불러오기 실패', e)
-  } finally {
-    loading.value = false
-  }
+// --- 1. 더미 결과 생성 함수 ---
+function makeDummyResults(count) {
+  return Array.from({ length: count }, (_, i) => ({
+    testResultId:    100 + i,
+    createdAt:       `2025-05-${String((i % 28) + 1).padStart(2,'0')}T1${(i%12)}:00:00`,
+    highestCategory: ['지각 추론','언어 이해','시사 상식'][i % 3],
+    lowestCategory:  ['작업 기억','공간 지각력','처리 속도'][i % 3],
+    totalScore:      60 + (i % 41)  // 60~100 사이
+  }))
 }
 
-const sortedList = computed(() => {
-  return [...resultList.value].sort((a, b) => {
-    return sort.value === 'desc'
-        ? new Date(b.createdAt) - new Date(a.createdAt)
-        : new Date(a.createdAt) - new Date(b.createdAt)
-  })
+// --- 2. 상태 정의 ---
+const resultList   = ref([])
+const loading      = ref(false)
+
+const year         = ref('')
+const month        = ref('')
+const sort         = ref('desc')
+const yearOptions  = [2025, 2024]
+
+// --- 3. 페이지네이션 상태 ---
+const currentPage  = ref(1)
+const pageSize     = ref(5)
+
+// --- 4. 정렬된 리스트 (client-side) ---
+const sortedList = computed(() =>
+    [...resultList.value].sort((a, b) =>
+        sort.value === 'desc'
+            ? new Date(b.createdAt) - new Date(a.createdAt)
+            : new Date(a.createdAt) - new Date(b.createdAt)
+    )
+)
+
+// --- 5. 페이징된 리스트 ---
+const paginatedList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return sortedList.value.slice(start, start + pageSize.value)
 })
 
-// onMounted(fetchData)
+// --- 6. totalItems 계산 (computed) ---
+const totalItems = computed(() => sortedList.value.length)
+
+// --- 7. 페이지 변경 핸들러 ---
+function onPageChange(page) {
+  currentPage.value = page
+}
+
+// --- 8. fetchData: 더미 재설정용 (API 연동은 주석) ---
+function fetchData() {
+  loading.value = true
+  setTimeout(() => {
+    resultList.value = makeDummyResults(23)
+    loading.value = false
+  }, 200)
+}
+
+// --- 9. 초기 더미 세팅 ---
+onMounted(() => {
+  resultList.value = makeDummyResults(23)
+})
 </script>
 
+
 <template>
-  <main class="content">
+  <main>
     <!-- 현재 결과 -->
     <section class="section">
       <h2 class="section-title">최근 검사 결과</h2>
@@ -142,7 +149,7 @@ const sortedList = computed(() => {
       <div v-else-if="resultList.length === 0">검사 결과가 없습니다.</div>
       <div v-else>
         <ResultCard
-            v-for="item in sortedList"
+            v-for="item in paginatedList"
             :key="item.testResultId"
             :testResultId="item.testResultId"
             :createdAt="item.createdAt"
@@ -151,6 +158,14 @@ const sortedList = computed(() => {
             :totalScore="item.totalScore"
         />
       </div>
+
+      <Pagination
+          v-if="totalItems > pageSize"
+          :currentPage="currentPage"
+          :pageSize="pageSize"
+          :totalItems="totalItems"
+          @update:currentPage="onPageChange"
+      />
     </section>
   </main>
 </template>
