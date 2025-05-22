@@ -86,8 +86,9 @@ function onLoginCancel() {
 
 <style scoped>
 .frame {
-  width: 500px;
+  width: fit-content;
   padding: 20px;
+  margin: 0 auto;
 }
 
 .heading {

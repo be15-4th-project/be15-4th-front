@@ -6,10 +6,21 @@ import TestStart from "@/features/main/components/TestStart.vue";
 </script>
 
 <template>
-  <StudyCategoryListFrame></StudyCategoryListFrame>
-  <TestStart/>
+  <div class="wrapper-frame">
+    <TestStart/>
+    <StudyCategoryListFrame></StudyCategoryListFrame>
+  </div>
+
 </template>
 
 <style scoped>
-
+.wrapper-frame {
+  background-color: #ffffff;
+  padding: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
 </style>
