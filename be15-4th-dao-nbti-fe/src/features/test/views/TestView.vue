@@ -1,76 +1,113 @@
 <script setup>
-// 총 문제 수 (이 부분은 맛보기 인지 정식 검사인지에 따라서 달라질 예정)
-const totalProblems = 18;
-// 현재 문제 번호
-const currentProblem = 1;
+import {ref, onMounted, watchEffect, computed} from 'vue'
+import {getProblems} from "@/features/test/api.js";
+import {useAuthStore} from "@/stores/auth.js";
 
-// 진행 바 설정
-const progressBar = document.getElementById("progressBar");
-const percentage = (currentProblem / totalProblems) * 100;
+const authStore = useAuthStore()
 
-// 타이머 설정 (나중에 이 부분은 시간에 맞게 가져올 예정임)
-let time = 5;
-const timer = document.getElementById("timer");
+// 문제 담기
+const problems = ref([]);
+// 현재 문제 index
+const currentProblemIndex = ref(0);
+// 전체 문제 수
+const totalProblems = computed(() => problems.value.length);
 
-const interval = setInterval(() => {
-    if (time <= 0) {
-        clearInterval(interval);
-        timer.textContent = "0";
-    } else {
-        time--;
-        timer.textContent = time;
+// 문제 진행률을 표시하기 위한 것
+const percentage = ref(0);
+const time = ref(0);
+const timerDisplay = ref('0');
+let interval;
+
+const userAnswer = ref('');
+const guestId = ref(null);
+
+// 문제를 가져오는 api
+async function fetchProblems() {
+    try {
+        const res = await getProblems();
+
+        problems.value = res.data.data.problemList;
+        guestId.value = res.data.data.guestId;
+
+        console.log(problems.value);
+        console.log(guestId.value);
+
+        currentProblemIndex.value = 0;
+
+        startTimer();
+    } catch (e) {
+        console.error('문제 불러오기 실패:', e)
     }
-}, 1000);
+}
 
-// 정답은 숫자만 입력 가능하므로, 숫자만 입력 가능하도록 필터링 넣었음
-const input = document.getElementById("userAnswer");
-input.addEventListener("input", (e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-});
+// 문제를 채점하는 api
+
+// 타이머 시작하기
+function startTimer() {
+    if (interval) clearInterval(interval)
+
+    const current = problems.value[currentProblemIndex.value]
+    time.value = current?.timeLimit ?? 60
+    timerDisplay.value = time.value.toString()
+
+    interval = setInterval(() => {
+        if (time.value <= 0) {
+            clearInterval(interval)
+            timerDisplay.value = '0'
+
+            goToNextProblem()
+        } else {
+            time.value--
+            timerDisplay.value = time.value.toString()
+        }
+    }, 1000)
+}
+
+// 다음 문제로 넘어가기
+function goToNextProblem() {
+    if (currentProblemIndex.value < totalProblems.value - 1) {
+        currentProblemIndex.value++
+        userAnswer.value = ''
+        startTimer()
+    } else {
+        console.log('검사 종료!')
+    }
+}
+
+watchEffect(() => {
+    percentage.value =
+        totalProblems.value > 0
+            ? ((currentProblemIndex.value + 1) / totalProblems.value) * 100
+            : 0
+})
+
+onMounted(fetchProblems);
 </script>
 
 <template>
-    <div class="timer" id="timer">5</div>
+    <div class="timer">{{ timerDisplay }}</div>
 
-    <div class="container">
-        <!-- 진행 바 -->
+    <div class="container" v-if="problems.length > 0">
         <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-bar" :style="{ width: percentage + '%' }"></div>
         </div>
 
-        <!-- 지시문 -->
-        <!-- 문제 번호가 들어가는 부분 -->
-        <div class="question-subtitle"><strong>1. </strong> 아래 전개도로 만들 수 있는 상자를 고르세요.</div>
-
-        <!-- 문제 이미지 들어 갈 부분-->
         <div class="image-area">
-            <img src="" alt="문제 이미지" width="300" />
+            <img :src="problems[currentProblemIndex].contentImageUrl" alt="문제 이미지" width="300" />
         </div>
 
-        <!-- 정답 입력 -->
         <div class="answer-input">
             정답 :
-            <input type="text" id="userAnswer"/>
+            <input type="text" v-model="userAnswer" />
         </div>
 
-        <!-- 버튼 -->
         <div class="button-group">
-            <!-- 시간 제한이 있는 문제이기 때문에 이전 버튼은 없앰-->
-            <button class="btn">다음</button>
-            <!-- 마지막 번호라면 끝내기 버튼이 나올 수 있게 설정하기 -->
-            <!--        <button class="btn">끝내기</button>-->
+            <button class="btn" @click="goToNextProblem">다음</button>
         </div>
     </div>
 </template>
 
 <style scoped>
-template {
-    margin: 0;
-    font-family: 'Pretendard', sans-serif;
-    background: #f8f9fa;
-    color: #333;
-}
-
 .container {
     max-width: 900px;
     margin: 3rem auto;
