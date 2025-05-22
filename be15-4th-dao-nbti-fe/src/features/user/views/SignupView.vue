@@ -54,6 +54,11 @@ const signupRes = async () => {
     modalVisible.value = true;
     return;
   }
+  if(insertable.value){
+    modalMessage.value = '아이디 중복검사를 해주세요.'
+    modalVisible.value = true
+    return
+  }
   try{
     console.log(form)
     const response = await signup(form);

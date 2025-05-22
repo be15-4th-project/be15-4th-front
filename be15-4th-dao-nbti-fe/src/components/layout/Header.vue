@@ -16,11 +16,16 @@
       </template>
      <template v-else>
        <RouterLink to ="/login" class="link">로그인</RouterLink>
-       <RouterLink to ="/" class="div">회원가입</RouterLink>
+       <RouterLink to ="/signup" class="div">회원가입</RouterLink>
      </template>
     </div>
   </div>
-  <small-modal :visible="modalVisible" :message="modalMessage" @cancel="closeModal" />
+  <small-modal :visible="modalVisible"  @cancel="closeModal" >
+    <p>
+      {{modalMessage}}
+    </p>
+
+  </small-modal>
 </template>
 
 <script setup>
@@ -28,10 +33,14 @@ import {useAuthStore} from "@/stores/auth.js";
 import {useRouter} from "vue-router";
 import {logoutUser} from "@/features/user/api.js";
 import SmallModal from "@/components/common/SmallModal.vue";
-import {ref} from "vue";
+import {computed, ref} from "vue";
+import {storeToRefs} from "pinia";
 
 const router = useRouter()
-const authStore = useAuthStore()
+const auth = useAuthStore()
+const { isAuthenticated, userRole } = storeToRefs(auth)
+const isUser = computed(() => isAuthenticated.value && userRole.value === 'USER')
+const isAdmin = computed(() => isAuthenticated.value && userRole.value === 'ADMIN')
 const modalVisible = ref(false);
 const modalMessage = ref("로그아웃 되었습니다.")
 
@@ -42,7 +51,7 @@ const handleLogout = async ()=>{
     console.error('로그아웃 API 실패', e)
   }
   modalVisible.value = true;
-  authStore.clearAuth();
+  auth.clearAuth();
 }
 
 const closeModal = async ()=>{

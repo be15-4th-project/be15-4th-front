@@ -91,7 +91,7 @@ const signup = async  () =>{
       label="생일"
       type="date"/>
   <BlueButton
-      text="로그인"
+      text="회원가입"
       @click="signup"/>
 </div>
 </template>
