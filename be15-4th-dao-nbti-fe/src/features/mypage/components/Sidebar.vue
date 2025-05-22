@@ -41,10 +41,11 @@ const isActive = (path) => route.path === path || route.path.startsWith(path + '
   background: #fff;
   border-right: 1px solid #ddd;
   padding: 2rem 1rem;
-  box-sizing: border-box;
+  box-sizing: content-box;
   position: sticky;
   top: 0;
   height: 100vh;
+  //flex-shrink: 0;
 }
 
 .sidebar h3 {

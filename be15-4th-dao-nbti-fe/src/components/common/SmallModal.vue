@@ -4,8 +4,7 @@ import { nextTick, watch } from 'vue'
 
 const props = defineProps({
     visible: { type: Boolean, required: true },
-    message: { type: String, default: '정말 진행하시겠습니까?' },
-    // 확인 버튼을 보여줄지 말지 설정하는 부분
+    cancelText :{ type: String, default: '닫기' },
     confirmVisible: { type: Boolean, default: false },
     confirmText: { type: String, default: '확인' }
 })
@@ -43,10 +42,10 @@ watch(() => props.visible, (val) => {
         @keydown.esc="handleCancel"
     >
         <div class="modal-content">
-            <p>{{ message }}</p>
+            <slot/>
             <div class="modal-buttons">
-                <button class="cancel-btn" @click="handleCancel">닫기</button>
                 <button v-if="confirmVisible" class="confirm-btn" @click="handleConfirm">{{ confirmText }}</button>
+                <button class="cancel-btn" @click="handleCancel">{{ cancelText }}</button>
             </div>
         </div>
     </div>
