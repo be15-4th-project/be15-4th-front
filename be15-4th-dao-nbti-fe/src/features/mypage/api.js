@@ -27,7 +27,10 @@ export const fetchStudyDetail = (id) => api.get(`/mypage/studies/${id}`)
 
 // 이의 제기 목록 조회 API
 export const fetchObjections = () => api.get('/mypage/objections')
-/*
-export const fetchObjectionDetail = (id) => api.get(`/mypage/objections/${id}`)
+
+//회원 정보 조회 API
 export const fetchUserInfo = () => api.get('/user/info')
-*/
+
+// export const fetchObjectionDetail = (id) => api.get(`/mypage/objections/${id}`)
+
+
