@@ -14,3 +14,7 @@ import api from '@/api/axios.js';
 //     const res = await api.get('/admin/problems');
 //     return res.data.data.problems; // ApiResponse<>
 // };
+
+export function fetchUserList(queryParams) {
+    return api.get(`/user/list?`+queryParams);
+}
