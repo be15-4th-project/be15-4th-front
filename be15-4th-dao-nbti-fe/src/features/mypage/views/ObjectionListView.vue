@@ -1,75 +1,97 @@
 <script setup>
 import BigModal from '@/components/common/BigModal.vue'
 import Pagination from '@/features/mypage/components/Pagination.vue'
-import { ref, computed, onMounted } from 'vue'
-
-// --- 1. 테스트용 더미 데이터 생성 ---
-function makeDummy(count) {
-  return Array.from({ length: count }, (_, i) => ({
-    objectionId: 100 + i + 1,
-    categoryName: ['언어 이해','지각 추론','작업 기억'][i % 3],
-    createdAt: `2025-05-${String((i % 28) + 1).padStart(2,'0')}T0${(i%12)}:00:00`,
-    reason: `테스트 이의제기 사유 #${i + 1}`,
-    status: ['PENDING','ACCEPTED','REJECTED'][i % 3]
-  }))
-}
+import { ref, onMounted } from 'vue'
+import { fetchObjections, fetchObjectionDetail, fetchStudyCategories } from '@/features/mypage/api.js'
 
 const objectionList = ref([])
+const selectedObjection = ref(null)
+const modalVisible = ref(false)
 
-// 필터 상태
-const filter      = ref('')
-// 페이지네이션 상태
+const filter = ref('')
+const parentCategoryId = ref('')
+const categoryOptions = ref([])
 const currentPage = ref(1)
-const pageSize    = ref(10)  // 한 페이지당 5개씩
-
-// 필터된 전체 리스트
-const filteredList = computed(() => {
-  return filter.value
-      ? objectionList.value.filter(o => o.status === filter.value)
-      : objectionList.value
-})
-// 페이지네이션된 리스트
-const paginatedList = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return filteredList.value.slice(start, start + pageSize.value)
-})
-// 전체 아이템 수
-const totalItems = computed(() => filteredList.value.length)
+const pageSize = ref(10)
+const totalItems = ref(0)
 
 const statusLabel = {
-  PENDING:  '접수됨',
+  PENDING: '접수됨',
   ACCEPTED: '수용됨',
   REJECTED: '반려됨'
 }
 
-const selectedObjection = ref(null)
-const modalVisible     = ref(false)
-
-// 페이지 변경 핸들러
-function onPageChange(page) {
-  currentPage.value = page
+async function fetchList() {
+  try {
+    const { data } = await fetchObjections({
+      status: filter.value || undefined,
+      parentCategoryId: parentCategoryId.value || undefined,
+      page: currentPage.value - 1,
+      size: pageSize.value
+    })
+    objectionList.value = data.data?.content || []
+    totalItems.value = data.data?.pagination?.totalItems || 0
+  } catch (e) {
+    console.error('이의제기 목록 조회 실패', e.response || e)
+  }
 }
 
-// mounted 시 더미 채우기
+async function openDetailModal(id) {
+  try {
+    const { data } = await fetchObjectionDetail(id)
+    selectedObjection.value = {
+      ...data.data,
+      parentCategoryName: objectionList.value.find(o => o.objectionId === id)?.parentCategoryName || '-'
+    }
+    modalVisible.value = true
+  } catch (e) {
+    console.error('이의제기 상세 조회 실패', e.response || e)
+  }
+}
+
+async function fetchCategories() {
+  try {
+    const { data } = await fetchStudyCategories()
+    categoryOptions.value = data.data.categories || []
+  } catch (e) {
+    console.error('분야 목록 조회 실패', e.response || e)
+  }
+}
+
+function onSearch() {
+  currentPage.value = 1
+  fetchList()
+}
+
 onMounted(() => {
-  objectionList.value = makeDummy(20)
+  fetchCategories()
+  fetchList()
 })
 </script>
 
 <template>
   <main>
     <section class="section">
-      <h2 class="section-title">이의제기 내역 조회 </h2>
+      <h2 class="section-title">이의제기 내역 조회</h2>
 
       <div class="filter-bar">
         <label for="status">상태</label>
-        <select v-model="filter" id="status" @change="currentPage = 1">
+        <select v-model="filter" id="status">
           <option value="">전체</option>
           <option value="PENDING">접수됨</option>
           <option value="ACCEPTED">수용됨</option>
           <option value="REJECTED">반려됨</option>
         </select>
-        <button @click="fetchData">검색</button>
+
+        <label for="category">분야</label>
+        <select v-model="parentCategoryId" id="category">
+          <option value="">전체</option>
+          <option v-for="cat in categoryOptions" :key="cat.categoryId" :value="cat.categoryId">
+            {{ cat.name }}
+          </option>
+        </select>
+
+        <button @click="onSearch">검색</button>
       </div>
 
       <table class="objection-table">
@@ -83,18 +105,22 @@ onMounted(() => {
         </tr>
         </thead>
         <tbody>
-        <tr v-for="item in paginatedList" :key="item.objectionId">
-          <td>{{ item.categoryName }}</td>
-          <td>{{ item.reason }}</td>
+        <tr v-for="item in objectionList" :key="item.objectionId">
+          <td>{{ item.parentCategoryName || '-' }}</td>
+          <td>{{ item.reason || '-' }}</td>
           <td>
-              <span class="status" :class="item.status.toLowerCase()">
-                {{ statusLabel[item.status] }}
+              <span
+                  v-if="item.status"
+                  class="status"
+                  :class="item.status.toLowerCase()"
+              >
+                {{ statusLabel[item.status] || '알 수 없음' }}
               </span>
+            <span v-else class="status unknown">알 수 없음</span>
           </td>
-          <td>{{ item.createdAt.replace('T', ' ').slice(0, 16) }}</td>
+          <td>{{ item.createdAt?.replace('T', ' ').slice(0, 16) || '-' }}</td>
           <td>
-            <button class="detail-button"
-                    @click="selectedObjection = item; modalVisible = true">
+            <button class="detail-button" @click="openDetailModal(item.objectionId)">
               상세 보기
             </button>
           </td>
@@ -102,13 +128,11 @@ onMounted(() => {
         </tbody>
       </table>
 
-      <!-- 페이지네이션 -->
       <Pagination
-          v-if="totalItems > pageSize"
           :currentPage="currentPage"
           :pageSize="pageSize"
           :totalItems="totalItems"
-          @update:currentPage="onPageChange"
+          @update:currentPage="(p) => { currentPage.value = p; fetchList() }"
       />
     </section>
 
@@ -117,19 +141,19 @@ onMounted(() => {
         <div class="modal-detail">
           <div class="modal-header">
             <h3>제출한 이의제기 내용</h3>
-            <span class="status" :class="selectedObjection?.status.toLowerCase()">
-              {{ statusLabel[selectedObjection?.status] }}
+            <span class="status" :class="selectedObjection?.status?.toLowerCase() || 'unknown'">
+              {{ statusLabel[selectedObjection?.status] || '알 수 없음' }}
             </span>
           </div>
           <div class="modal-meta">
-            <div><strong>분야</strong> {{ selectedObjection?.categoryName }}</div>
+            <div><strong>분야</strong> {{ selectedObjection?.parentCategoryName || '-' }}</div>
             <div><strong>제출일시</strong>
-              {{ selectedObjection?.createdAt.replace('T', ' ').slice(0, 16) }}
+              {{ selectedObjection?.createdAt?.replace('T', ' ').slice(0, 16) || '-' }}
             </div>
           </div>
           <div class="modal-reason">
             <p class="label">이의제기 사유</p>
-            <p class="value">{{ selectedObjection?.reason }}</p>
+            <p class="value">{{ selectedObjection?.reason || '-' }}</p>
           </div>
         </div>
       </template>
@@ -137,8 +161,11 @@ onMounted(() => {
   </main>
 </template>
 
+
 <style scoped>
-.section { margin-bottom: 80px; }
+.section {
+  margin-bottom: 80px;
+}
 .section-title {
   font-size: 1.4rem;
   margin-bottom: 1rem;
@@ -196,10 +223,18 @@ onMounted(() => {
   font-weight: 500;
   display: inline-block;
 }
-.status.pending { background: #e0f3ff; color: var(--color-main, #3b82f6); }
-.status.accepted { background: #e8f5e9; color: var(--color-success, #2e7d32); }
-.status.rejected { background: #fdecea; color: var(--color-error, #d32f2f); }
-
+.status.pending {
+  background: #e0f3ff;
+  color: var(--color-main, #3b82f6);
+}
+.status.accepted {
+  background: #e8f5e9;
+  color: var(--color-success, #2e7d32);
+}
+.status.rejected {
+  background: #fdecea;
+  color: var(--color-error, #d32f2f);
+}
 .detail-button {
   background: #3b82f6;
   color: #fff;
@@ -209,10 +244,21 @@ onMounted(() => {
   font-size: 0.9rem;
   cursor: pointer;
 }
-.detail-button:hover { background: #1e40af; }
-
-.modal-detail { text-align: left; font-size: 0.95rem; display: flex; flex-direction: column; gap: 1.2rem; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; }
+.detail-button:hover {
+  background: #1e40af;
+}
+.modal-detail {
+  text-align: left;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .modal-meta {
   display: flex;
   justify-content: space-between;
@@ -227,6 +273,12 @@ onMounted(() => {
   border-radius: 10px;
   padding: 1rem;
 }
-.modal-reason .label { font-weight: bold; margin-bottom: 0.5rem; }
-.modal-reason .value { line-height: 1.6; white-space: pre-wrap; }
+.modal-reason .label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.modal-reason .value {
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
 </style>

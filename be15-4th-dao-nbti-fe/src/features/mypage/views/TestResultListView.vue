@@ -192,7 +192,6 @@ onMounted(async () => {
       </div>
 
       <Pagination
-          v-if="totalPage > 1"
           :currentPage="currentPage"
           :pageSize="pageSize"
           :totalItems="totalItems"

@@ -11,3 +11,12 @@ export function refreshUserToken() {
 export function logoutUser() {
     return api.post(`/user/logout`);
 }
+
+export function id_check(accountId) {
+    return api.get(`/user/id-duplicate?accountId=${accountId}`,);
+}
+
+export function signup(userInfo) {
+    return api.post(`/user/signup`,userInfo);
+}
+

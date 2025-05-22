@@ -63,9 +63,9 @@ const closeModal = async() => {
   </div>
   <small-modal
       :visible="modalVisible"
-      :message="modalMessage"
       @cancel="closeModal"
-  />
+  ><p>{{ modalMessage }}</p>
+  </small-modal>
 
 </template>
 
