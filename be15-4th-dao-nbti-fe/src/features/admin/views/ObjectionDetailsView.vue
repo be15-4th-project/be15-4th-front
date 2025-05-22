@@ -1,52 +1,105 @@
-<!-- ObjectionDetailModal.vue -->
 <script setup>
-import BigModal from "@/components/common/BigModal.vue";
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import api from '@/api/axios.js'
 
-const props = defineProps({
-  visible: Boolean,
-  objection: {
-    type: Object,
-    required: true,
+const route = useRoute()
+const router = useRouter()
+
+const objectionId = route.params.objectionId
+const objection = ref(null)
+const isLoading = ref(true)
+const isEditing = ref(false)
+
+const fetchObjection = async () => {
+  try {
+    const response = await api.get(`/admin/objections/${objectionId}`)
+    objection.value = response.data.data.objectionDetails;
+  } catch (e) {
+    alert('이의 제기 정보를 불러오지 못했습니다.')
+    console.error(e)
+    router.push('/admin/objections')
+  } finally {
+    isLoading.value = false
   }
-})
-
-const emit = defineEmits(['close', 'approve', 'reject', 'updateInfo', 'goToProblem'])
-
-function handleClose() {
-  emit('close')
 }
 
-function handleApprove() {
-  emit('approve', objection.objectionId)
+const startEditing = () => {
+  if (objection.value.status !== 'PENDING') {
+    alert('이미 처리 완료된 이의 제기입니다.');
+    return;
+  }
+  isEditing.value = true
 }
 
-function handleReject() {
-  emit('reject', objection.objectionId)
+const updateObjection = async () => {
+  if (!validateRequest()) return;
+  try {
+    await api.put(`/admin/objections/${objectionId}`, {
+      status: objection.value.status,
+      information: objection.value.information,
+    })
+    alert('처리가 완료되었습니다.')
+    isEditing.value = false
+    router.push('/admin/objections')
+  } catch (e) {
+    alert('처리 중 오류가 발생했습니다.')
+    console.error(e)
+  }
 }
 
-function updateInfo(event) {
-  emit('updateInfo', event.target.value)
+const validateRequest = () => {
+  if (objection.value.status === 'PENDING') {
+    alert('변경할 상태는 승인 또는 반려여야 합니다.');
+    return false;
+  }
+  if (objection.value.status === 'REJECTED' && !objection.value.information) {
+    alert('이의 제기 반려 시 처리 내용을 필수로 입력해야 합니다.');
+    return false;
+  }
+  return true;
 }
 
-function onGoToProblem() {
-  emit('goToProblem', objection.problemId)
+const cancelEditing = () => {
+  isEditing.value = false
+  fetchObjection()  // 원래 데이터 다시 불러오기
+}
+
+const goToProblem = () => {
+  // 새 창에서 열기
+  const url = `/admin/problems/${objection.value.problemId}`
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+const goToList = () => {
+  router.push(`/admin/objections`);
 }
 
 const formatDateTimeWithWeekday = (datetimeStr) => {
-  const [datePart, timePart] = datetimeStr.split('T'); // ['2025-05-20', '10:18:00']
+  const [datePart, timePart] = datetimeStr.split('T');
   const date = new Date(datePart);
   const weekdays = '일월화수목금토';
   const day = weekdays[date.getDay()];
   return `${datePart} (${day}) ${timePart}`;
-};
+}
+
+onMounted(async () => {
+  await fetchObjection()
+});
+
 </script>
 
 <template>
-  <BigModal :visible="visible" @cancel="handleClose" :confirm-visible="false">
-    <template #default>
-      <h2 style="margin-bottom: 1.5rem;">이의 제기 상세</h2>
+  <main class="content">
+    <section class="section">
+      <template v-if="!isEditing">
+      <h2>이의 제기 상세</h2>
+      </template>
+      <template v-else>
+        <h2>이의 제기 상세 - 답변</h2>
+      </template>
 
-      <div style="text-align: left;">
+      <div class="card" v-if="!isLoading && objection">
         <div class="form-group">
           <label>회원 아이디</label>
           <input type="text" :value="objection.accountId" disabled />
@@ -54,9 +107,9 @@ const formatDateTimeWithWeekday = (datetimeStr) => {
 
         <div class="form-group">
           <label>문제 ID</label>
-          <div style="display: flex; gap: 0.5rem;">
+          <div class="form-row">
             <input type="text" :value="objection.problemId" disabled />
-            <button class="btn" @click="onGoToProblem">문제 확인</button>
+            <button class="btn" @click="goToProblem">문제 확인</button>
           </div>
         </div>
 
@@ -67,55 +120,118 @@ const formatDateTimeWithWeekday = (datetimeStr) => {
 
         <div class="form-group">
           <label>상세 내용</label>
-          <textarea :value="objection.content" disabled />
+          <textarea :value="objection.reason" disabled> </textarea>
+        </div>
+
+        <div class="form-group">
+          <label>처리 상태</label>
+          <select v-model="objection.status" :disabled="!isEditing">
+            <option value="PENDING">대기</option>
+            <option value="ACCEPTED">승인</option>
+            <option value="REJECTED">반려</option>
+          </select>
+          <button class="btn" v-if="!isEditing" @click="startEditing">변경</button>
         </div>
 
         <div class="form-group">
           <label>처리 정보</label>
-          <textarea
-              v-model="objection.response"
-              placeholder="답변 내용을 입력하세요"
-          />
+          <textarea v-model="objection.information" :disabled="!isEditing" placeholder="답변 내용을 입력하세요"> </textarea>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
-          <button class="btn" @click="handleApprove">승인</button>
-          <button class="btn secondary" @click="handleReject">반려</button>
+        <div class="top-btn-group" v-if="isEditing">
+          <button class="btn" @click="updateObjection">처리 완료</button>
+          <button class="btn" @click="cancelEditing">취소</button>
         </div>
+        <div class="top-btn-group" v-else>
+          <button class="btn" @click="goToList">목록으로</button>
+        </div>
+
+
       </div>
-    </template>
-  </BigModal>
+
+      <div v-else-if="isLoading">로딩 중...</div>
+    </section>
+  </main>
 </template>
 
 <style scoped>
+.top-btn-group {
+  display: flex;
+  gap: 12px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.flex {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  margin-left: 20rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
 .form-group {
   display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
+
 .form-group label {
   font-weight: 500;
-  margin-bottom: 0.25rem;
 }
-.form-group input,
-.form-group textarea {
+
+.form-group input[type="text"],
+.form-group select,
+.form-group input[type="file"] {
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 8px;
-  font-size: 14px;
 }
-textarea {
-  min-height: 100px;
+
+.form-group textarea {
+  min-width: 20rem;
+  min-height: 5rem;
 }
-.btn {
-  padding: 0.5rem 1rem;
-  background: #3B82F6;
-  color: white;
-  border: none;
+
+.preview-box {
+  width: 200px;
+  height: 180px;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  cursor: pointer;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #999;
+  margin-bottom: 1rem;
 }
-.btn.secondary {
-  background: #6c757d;
+
+/* readonly지만 disabled처럼 스타일 부여 */
+.readonly-look {
+  background-color: #f5f5f5;  /* 회색 배경 */
+  color: #777;                /* 텍스트 색상 */
+  cursor: not-allowed;        /* 마우스 커서 */
+  pointer-events: none;       /* 클릭 막기 */
 }
 </style>
