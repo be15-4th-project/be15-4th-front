@@ -44,7 +44,7 @@ const formattedDate = computed(() =>
 <style scoped>
 .result-row {
   display: grid;
-  grid-template-columns: 1fr 100px 140px 120px;
+  grid-template-columns: 1fr 100px 140px 90px;
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
@@ -99,12 +99,15 @@ const formattedDate = computed(() =>
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  white-space: nowrap;
-  text-align: center;
   transition: background 0.2s;
 }
-
 .btn-detail:hover {
   background: #1e40af;
+}
+.loading,
+.empty {
+  text-align: center;
+  color: #666;
+  padding: 2rem 0;
 }
 </style>

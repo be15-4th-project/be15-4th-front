@@ -1,11 +1,4 @@
 <template>
-<!-- 우선 둘 중에 하나만 가지고 작업하기! -->
-<!--  <GeneralSidebar/>-->
-  <AdminSidebar/>
-
-<!-- Login 구현 완료 후 Pinia에 Token, Role 저장되면 사용할 코드 -->
-<!--  <GeneralSidebar v-if="isUser" />-->
-<!--  <AdminSidebar v-else-if="isAdmin" />-->
 </template>
 
 <script setup>

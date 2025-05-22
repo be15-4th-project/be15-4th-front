@@ -1,13 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchStudyResults } from '@/features/mypage/api.js'
+import { fetchStudyResults, fetchStudyCategories } from '@/features/mypage/api.js'
 import Pagination from '@/features/mypage/components/Pagination.vue'
 
 // --- 필터 상태 ---
 const year  = ref('')
 const month = ref('')
-// 필요하다면 parentCategoryId 필터도 선언하세요
-// const parentCategoryId = ref('')
+const parentCategoryId = ref('')
+
+// --- 카테고리 목록 ---
+const categories = ref([])
 
 // --- 데이터 & 로딩 ---
 const studyList = ref([])
@@ -29,13 +31,26 @@ const categoryIcons = {
 }
 
 // --- API 호출 함수 ---
+async function loadCategories() {
+  try {
+    const res = await fetchStudyCategories()
+    categories.value = res.data.data.categories
+  } catch (e) {
+    console.error('카테고리 로드 실패', e)
+  }
+}
 async function fetchData() {
+  console.log('>> fetchData params', {
+    year: year.value,
+    month: month.value,
+    parentCategoryId: parentCategoryId.value
+  })
   loading.value = true
   try {
     const res = await fetchStudyResults({
       year:  year.value || undefined,
       month: month.value || undefined,
-      // parentCategoryId: parentCategoryId.value || undefined,
+      parentCategoryId: parentCategoryId.value ? Number(parentCategoryId.value) : undefined,
       page:  currentPage.value - 1,  // 0-based index
       size:  pageSize.value
     })
@@ -61,7 +76,10 @@ function onPageChange(page) {
 }
 
 // --- 컴포넌트 초기화 ---
-onMounted(fetchData)
+onMounted(async () => {
+  await loadCategories()
+  await fetchData()
+})
 </script>
 
 <template>
@@ -84,16 +102,17 @@ onMounted(fetchData)
           <option v-for="m in 12" :key="m" :value="m">{{ m }}월</option>
         </select>
 
-        <!-- 상위 카테고리 필터가 필요하면 주석 해제 -->
-        <!--
         <label for="category">분야</label>
-        <select v-model="parentCategoryId" id="category">
+        <select v-model.number="parentCategoryId" id="category">
           <option value="">전체</option>
-          <option value="1">언어 이해</option>
-          <option value="2">지각 추론</option>
-          <option value="3">작업 기억</option>
+          <option
+              v-for="cat in categories"
+              :key="cat.categoryId"
+              :value="cat.categoryId"
+          >
+            {{ cat.name }}
+          </option>
         </select>
-        -->
 
         <button @click="onSearch">검색</button>
       </div>
@@ -133,7 +152,6 @@ onMounted(fetchData)
 
       <!-- 페이지네이션 -->
       <Pagination
-          v-if="totalItems > pageSize"
           :currentPage="currentPage"
           :pageSize="pageSize"
           :totalItems="totalItems"
