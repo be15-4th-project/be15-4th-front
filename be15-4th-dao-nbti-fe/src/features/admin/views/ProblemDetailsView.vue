@@ -272,8 +272,9 @@ const uploadImage = (event) => {
         @confirm="onConfirmDelete"
         @cancel="onCancelDelete"
         title="삭제 확인"
-        content="정말 삭제하시겠습니까?"
-    />
+    >
+      <p>정말 삭제하시겠습니까?</p>
+    </SmallModal>
     <SmallModal
         :visible="showCancelEditModal"
         :confirmVisible="true"
@@ -282,8 +283,9 @@ const uploadImage = (event) => {
         @confirm="onCancelEdit"
         @cancel="() => (showCancelEditModal = false)"
         title="수정 취소 확인"
-        content="수정을 취소하시겠습니까? 입력한 내용이 저장되지 않습니다."
-    />
+    >
+      <p>수정을 취소하시겠습니까? 입력한 내용이 저장되지 않습니다.</p>
+    </SmallModal>
   </main>
 </template>
 
