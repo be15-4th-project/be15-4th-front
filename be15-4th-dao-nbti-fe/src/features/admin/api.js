@@ -22,3 +22,7 @@ export function fetchUserList(queryParams) {
 export function fetchTestResultList(queryParams) {
     return api.get(`/test-result/list/admin?`+queryParams);
 }
+
+export function fetchTestResultDetail(id){
+    return api.get(`/test-result/${id}/admin`);
+}
