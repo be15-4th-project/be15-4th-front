@@ -9,3 +9,8 @@ export function getUserPoints() {
 export function getProblems() {
     return api.get('/test/problems');
 }
+
+/* 3. 문제 채점하기 */
+export function submitAnswers(payload) {
+    return api.post(`/test-result`, payload );
+}
