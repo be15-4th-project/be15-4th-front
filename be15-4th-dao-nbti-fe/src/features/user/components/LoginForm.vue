@@ -87,5 +87,7 @@ function login(){
   position: relative;
   width: 100%;
   font-size: x-large;
+  font-weight : 700;
+  color : #3b82f6;
 }
 </style>

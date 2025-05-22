@@ -1,47 +1,32 @@
 <script setup>
-
-import {computed} from "vue";
+import { computed } from 'vue'
 
 const props = defineProps({
-  modelValue: String,
-  label: String,
-  placeholder: String,
-  type: {
-    type: String,
-    default: 'text'
-  },
-  insertable:{
-    type:Boolean,
-    default:true
-  }
+  gender: String
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:gender'])
 
-const inputValue = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+const genderModel = computed({
+  get: () => props.gender,
+  set: value => emit('update:gender', value)
 })
 </script>
 
 <template>
   <div class="container">
     <div class="label">
-      <div class="text">{{label}}</div>
+      <div class="text">성별</div>
     </div>
-    <input
-        class="input"
-        v-model="inputValue"
-        :type="type"
-        :placeholder="placeholder"
-        :disabled="!insertable"
-    />
+    <select class="gender-form" v-model="genderModel">
+      <option value="M">남</option>
+      <option value="F">여</option>
+    </select>
   </div>
 </template>
 
+
 <style scoped>
-
-
 .container {
   align-items: flex-start;
   align-self: stretch;
@@ -62,8 +47,7 @@ const inputValue = computed({
   position: relative;
   width: 100%;
 }
-
-.input {
+.gender-form {
   background-color: #ffffff;
   border: 1px solid #cccccc;
   border-radius: 8px;
@@ -72,19 +56,10 @@ const inputValue = computed({
   box-sizing: border-box;
   display: block; /* 또는 생략 */
 }
-
-
 .text {
   align-self: stretch;
   color: #757575;
   margin-top: -1.00px;
   position: relative;
 }
-
-.input:disabled {
-  background-color: #f0f0f0; /* 연한 회색 배경 */
-  color: #a0a0a0;            /* 텍스트도 회색 */
-  cursor: not-allowed;
-}
-
 </style>
