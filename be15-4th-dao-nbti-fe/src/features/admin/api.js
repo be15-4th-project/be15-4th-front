@@ -1,0 +1,16 @@
+import api from '@/api/axios.js';
+
+// export const fetchProblemList = async (params) => {
+//     try {
+//         const response = await api.get('/admin/problems', { params });
+//         return response.data.data.problems || [];
+//     } catch (error) {
+//         console.error('문제 목록 조회 실패:', error);
+//         return [];
+//     }
+// };
+//
+// export const getAllMeetings = async () => {
+//     const res = await api.get('/admin/problems');
+//     return res.data.data.problems; // ApiResponse<>
+// };
