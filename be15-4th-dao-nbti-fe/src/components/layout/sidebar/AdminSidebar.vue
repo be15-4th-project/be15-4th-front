@@ -11,7 +11,7 @@ const isProblemOrObjectionActive = computed(() => {
 
 // 현재 메뉴와 경로를 비교하여 active 클래스 적용
 const isActive = (menuPath) => {
-  return route.path === menuPath
+  return route.path.startsWith(menuPath);
 };
 </script>
 
@@ -43,8 +43,8 @@ const isActive = (menuPath) => {
     </ul>
 
     <RouterLink
-        to="/admin/manage-problem"
-        :class="{ active: isActive('/admin/manage-problem') }"
+        to="/admin/problems"
+        :class="{ active: isActive('/admin/problems') }"
     >문제 관리</RouterLink>
 
     <RouterLink
