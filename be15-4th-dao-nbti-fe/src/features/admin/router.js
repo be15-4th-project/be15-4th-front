@@ -18,9 +18,15 @@ export const adminRoutes = [
         path: '/admin/problems/:problemId',
         name: 'problem-details',
         component: () => import('@/features/admin/views/ProblemDetailsView.vue')
+    },
+    {
+        path: '/admin/problems/new',
+        name: 'create-problem',
+        component: () => import('@/features/admin/views/ProblemCreateView.vue')
     }
 
-        // path: '/admin',
+
+    // path: '/admin',
         // component: () => import('@/features/admin/components/AdminLayout.vue'),
         // children: [
             // {
