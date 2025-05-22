@@ -1,11 +1,11 @@
 <script setup>
 
+import TestStart from "@/features/main/components/TestStart.vue";
+
 </script>
 
 <template>
-<div>
-  mainview
-</div>
+  <TestStart/>
 </template>
 
 <style scoped>

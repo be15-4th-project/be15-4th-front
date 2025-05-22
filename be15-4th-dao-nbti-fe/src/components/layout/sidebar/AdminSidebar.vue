@@ -1,37 +1,56 @@
 <script setup>
-import { computed } from 'vue'
+import {computed, ref} from 'vue'
+import {useRoute} from "vue-router";
 
-// 부모 컴포넌트에서 activeMenu를 prop으로 받음
-const props = defineProps({
-  activeMenu: String,
-})
+const route = useRoute();
 
-// 문제 관리 또는 이의 제기 관리가 활성화 상태인지 계산
+// 현재 경로를 기반으로 active 메뉴 판단
 const isProblemOrObjectionActive = computed(() => {
-  return props.activeMenu === '문제 관리' || props.activeMenu === '이의 제기 관리'
-})
+  return route.path.includes('/admin/manage-problem') || route.path.includes('/admin/manage-objection')
+});
+
+// 현재 메뉴와 경로를 비교하여 active 클래스 적용
+const isActive = (menuPath) => {
+  return route.path.startsWith(menuPath);
+};
 </script>
 
 <template>
   <aside class="sidebar">
     <h3>서비스 관리</h3>
 
-    <RouterLink to="/admin/manage-user" :class="{ active: activeMenu === '회원 관리' }">회원 관리</RouterLink>
+    <RouterLink to="/admin/manage-user">회원 관리</RouterLink>
 
     <ul v-if="!isProblemOrObjectionActive">
       <li>
-        <RouterLink to="/admin/manage-user" :class="{ active: activeMenu === '회원 관리' }">회원</RouterLink>
+        <RouterLink
+            to="/admin/manage-user"
+            :class="{ active: isActive('/admin/manage-user') }"
+        >회원</RouterLink>
       </li>
       <li>
-        <RouterLink to="/admin/manage-user-test" :class="{ active: activeMenu === '검사 결과' }">검사 결과</RouterLink>
+        <RouterLink
+            to="/admin/manage-user-test"
+            :class="{ active: isActive('/admin/manage-user-test') }"
+        >검사 결과</RouterLink>
       </li>
       <li>
-        <RouterLink to="/admin/manage-user-study" :class="{ active: activeMenu === '학습 결과' }">학습 결과</RouterLink>
+        <RouterLink
+            to="/admin/manage-user-study"
+            :class="{ active: isActive('/admin/manage-user-study') }"
+        >학습 결과</RouterLink>
       </li>
     </ul>
 
-    <RouterLink to="/admin/manage-problem" :class="{ active: activeMenu === '문제 관리' }">문제 관리</RouterLink>
-    <RouterLink to="/admin/manage-objection" :class="{ active: activeMenu === '이의 제기 관리' }">이의 제기 관리</RouterLink>
+    <RouterLink
+        to="/admin/problems"
+        :class="{ active: isActive('/admin/problems') }"
+    >문제 관리</RouterLink>
+
+    <RouterLink
+        to="/admin/manage-objection"
+        :class="{ active: isActive('/admin/manage-objection') }"
+    >이의 제기 관리</RouterLink>
   </aside>
 </template>
 
@@ -59,7 +78,8 @@ const isProblemOrObjectionActive = computed(() => {
   color: #333;
 }
 .sidebar a:hover,
-.sidebar a.active {
+.sidebar a.active
+{
   background: #e9f0ff;
   color: #007bff;
   font-weight: 500;
@@ -73,6 +93,6 @@ const isProblemOrObjectionActive = computed(() => {
 
 .sidebar li {
   margin: 0;
-  padding-left: 40px;
+  padding-left: 24px;
 }
 </style>
