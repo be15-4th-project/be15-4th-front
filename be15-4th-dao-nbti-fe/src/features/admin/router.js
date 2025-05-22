@@ -23,6 +23,16 @@ export const adminRoutes = [
         path: '/admin/problems/new',
         name: 'create-problem',
         component: () => import('@/features/admin/views/ProblemCreateView.vue')
+    },
+    {
+        path: '/admin/objections',
+        name: 'manage-objection',
+        component: () => import('@/features/admin/views/ObjectionSearchView.vue')
+    },
+    {
+        path: '/admin/objections/:objectionId',
+        name: 'objection-details',
+        component: () => import('@/features/admin/views/ObjectionDetailsView.vue')
     }
 
 
