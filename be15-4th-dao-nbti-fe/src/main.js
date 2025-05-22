@@ -6,6 +6,7 @@ import router from "@/router/index.js";
 import {useAuthStore} from "@/stores/auth.js";
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
+import {refreshUserToken} from "@/features/user/api.js";
 
 async function bootstrap() {
     const app = createApp(App)
