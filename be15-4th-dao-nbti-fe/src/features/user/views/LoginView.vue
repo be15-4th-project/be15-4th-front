@@ -1,13 +1,17 @@
 <script setup>
-import {reactive, ref} from "vue";
+import {computed, reactive, ref} from "vue";
 import LoginForm from "@/features/user/components/LoginForm.vue";
 import {useAuthStore} from "@/stores/auth.js";
 import {useRouter} from "vue-router";
 import {loginUser} from "@/features/user/api.js";
 import SmallModal from "@/components/common/SmallModal.vue";
+import {storeToRefs} from "pinia";
 
 const router = useRouter();
 const authStore = useAuthStore()
+const { isAuthenticated, userRole } = storeToRefs(authStore)
+const isUser = computed(() => isAuthenticated.value && userRole.value === 'USER')
+const isAdmin = computed(() => isAuthenticated.value && userRole.value === 'ADMIN')
 const form = reactive({
   loginId: '',
   password: ''
@@ -46,7 +50,10 @@ const login = async () => {
 const closeModal = async() => {
   modalVisible.value=false;
   if(loginSuccess.value===true){
-    await router.push('/');
+    if(isUser)
+      await router.push('/');
+    else if(isAdmin)
+      await router.push('/admin')
   }
 }
 
