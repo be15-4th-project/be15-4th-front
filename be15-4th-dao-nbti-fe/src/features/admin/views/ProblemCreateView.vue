@@ -64,7 +64,7 @@ const validateRequest = () => {
     return alert('분야를 선택하세요.'); // 반환값은 undefined
   }
   if (!problem.value.level) {
-    return alert('난이도를 선택하세요,');
+    return alert('난이도를 선택하세요.');
   }
   if (!problem.value.answerTypeId) {
     return alert('답안 유형을 선택하세요.');
