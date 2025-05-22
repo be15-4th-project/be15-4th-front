@@ -65,7 +65,7 @@ const onSearch = () => {
 
 // 문제 상세 페이지 이동
 const goToDetail = (problemId) => {
-  // router.push({ name: 'ProblemDetail', params: { problemId } })
+  router.push({ name: 'problem-details', params: { problemId } })
 }
 
 // 페이지 변경 처리

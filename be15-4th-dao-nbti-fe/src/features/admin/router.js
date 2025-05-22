@@ -1,22 +1,22 @@
 export const adminRoutes = [
     {
         path: '/admin',
-        name: '관리자',
+        name: 'admin',
         component: () => import('@/features/admin/views/UserListView.vue')
     },
     {
         path: '/admin/manage-user',
-        name: '회원 관리',
+        name: 'manage-user',
         component: () => import('@/features/admin/views/UserListView.vue')
     },
     {
         path: '/admin/manage-problem',
-        name: '문제 관리',
+        name: 'manage-problem',
         component: () => import('@/features/admin/views/ProblemSearchView.vue'),
     },
     {
         path: '/admin/problems/:problemId',
-        name: '문제 상세 조회',
+        name: 'problem-details',
         component: () => import('@/features/admin/views/ProblemDetailsView.vue')
     }
 
