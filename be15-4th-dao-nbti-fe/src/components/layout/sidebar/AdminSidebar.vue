@@ -6,7 +6,7 @@ const route = useRoute();
 
 // 현재 경로를 기반으로 active 메뉴 판단
 const isProblemOrObjectionActive = computed(() => {
-  return route.path.includes('/admin/manage-problem') || route.path.includes('/admin/manage-objection')
+  return route.path.includes('/admin/problems') || route.path.includes('/admin/objections')
 });
 
 // 현재 메뉴와 경로를 비교하여 active 클래스 적용
@@ -48,8 +48,8 @@ const isActive = (menuPath) => {
     >문제 관리</RouterLink>
 
     <RouterLink
-        to="/admin/manage-objection"
-        :class="{ active: isActive('/admin/manage-objection') }"
+        to="/admin/objections"
+        :class="{ active: isActive('/admin/objections') }"
     >이의 제기 관리</RouterLink>
   </aside>
 </template>
