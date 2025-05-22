@@ -44,8 +44,8 @@ watch(() => props.visible, (val) => {
         <div class="modal-content">
             <slot/>
             <div class="modal-buttons">
-                <button class="cancel-btn" @click="handleCancel">닫기</button>
                 <button v-if="confirmVisible" class="confirm-btn" @click="handleConfirm">{{ confirmText }}</button>
+                <button class="cancel-btn" @click="handleCancel">{{ cancelText }}</button>
             </div>
         </div>
     </div>
