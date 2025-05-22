@@ -16,7 +16,9 @@
      </template>
     </div>
   </div>
-  <small-modal :visible="modalVisible" :message="modalMessage" @cancel="closeModal" />
+  <small-modal :visible="modalVisible" @cancel="closeModal" >
+    <p>{{modalMessage}}</p>
+  </small-modal>
 </template>
 
 <script setup>
