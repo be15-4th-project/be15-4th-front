@@ -5,6 +5,7 @@ import mypageRoutes from '@/features/mypage/router.js'
 import { adminRoutes } from "@/features/admin/router.js";
 import { userRoutes } from "@/features/user/router.js";
 import { studyRoutes } from "@/features/study/router.js";
+import {testRoutes} from "@/features/test/router.js";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -19,7 +20,8 @@ const router = createRouter({
                 ...mypageRoutes,
                 ...adminRoutes,
                 ...userRoutes,
-                ...studyRoutes
+                ...studyRoutes,
+                ...testRoutes
             ]
         },
 
