@@ -63,6 +63,11 @@ const onSearch = () => {
   fetchProblems()
 }
 
+// 문제 등록 버튼 클릭
+const onCreate = () => {
+  router.push('/admin/problems/new');
+}
+
 // 문제 상세 페이지 이동
 const goToDetail = (problemId) => {
   router.push({ name: 'problem-details', params: { problemId } })
@@ -141,6 +146,7 @@ const paginationRange = computed(() => {
           </select>
 
           <button class="btn" @click="onSearch">검색</button>
+          <button class="btn" @click="onCreate">신규 문제 등록</button>
         </div>
       </div>
 
