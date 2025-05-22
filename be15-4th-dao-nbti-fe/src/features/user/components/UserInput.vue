@@ -9,6 +9,10 @@ const props = defineProps({
   type: {
     type: String,
     default: 'text'
+  },
+  insertable:{
+    type:Boolean,
+    default:true
   }
 })
 
@@ -30,6 +34,7 @@ const inputValue = computed({
         v-model="inputValue"
         :type="type"
         :placeholder="placeholder"
+        :disabled="!insertable"
     />
   </div>
 </template>
@@ -74,6 +79,12 @@ const inputValue = computed({
   color: #757575;
   margin-top: -1.00px;
   position: relative;
+}
+
+.input:disabled {
+  background-color: #f0f0f0; /* 연한 회색 배경 */
+  color: #a0a0a0;            /* 텍스트도 회색 */
+  cursor: not-allowed;
 }
 
 </style>
