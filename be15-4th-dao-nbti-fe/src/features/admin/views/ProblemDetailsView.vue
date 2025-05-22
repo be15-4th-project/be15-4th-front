@@ -171,12 +171,14 @@ const onCancelDelete = () => {
 
     <SmallModal
         :visible="showDeleteModal"
-        message="정말 삭제하시겠습니까?"
         :confirmVisible="true"
-        confirmText="삭제"
+        confirmText="예"
+        cancelText="아니오"
         @confirm="onConfirmDelete"
         @cancel="onCancelDelete"
-    />
+    >
+      <p>정말 삭제하시겠습니까?</p>
+    </SmallModal>
 
   </main>
 </template>
@@ -248,4 +250,5 @@ const onCancelDelete = () => {
   color: #999;
   margin-bottom: 1rem;
 }
+
 </style>
