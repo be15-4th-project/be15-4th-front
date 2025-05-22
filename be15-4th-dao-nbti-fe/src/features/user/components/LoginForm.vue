@@ -50,6 +50,7 @@ function login(){
           text="로그인"
           @click="login"/>
     </div>
+    <RouterLink to="/find-password">비밀번호 찾기</RouterLink>
   </div>
 </template>
 

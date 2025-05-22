@@ -10,8 +10,8 @@ import {storeToRefs} from "pinia";
 const router = useRouter();
 const authStore = useAuthStore()
 const { isAuthenticated, userRole } = storeToRefs(authStore)
-const isUser = computed(() => isAuthenticated.value && userRole.value === 'USER')
-const isAdmin = computed(() => isAuthenticated.value && userRole.value === 'ADMIN')
+const isUser = computed(() =>isAuthenticated.value && userRole.value === 'USER')
+const isAdmin = computed(() =>isAuthenticated.value && userRole.value === 'ADMIN')
 const form = reactive({
   loginId: '',
   password: ''
@@ -50,9 +50,10 @@ const login = async () => {
 const closeModal = async() => {
   modalVisible.value=false;
   if(loginSuccess.value===true){
-    if(isUser)
+    console.log('권한 : '+isUser.value)
+    if(isUser.value)
       await router.push('/');
-    else if(isAdmin)
+    else if(isAdmin.value)
       await router.push('/admin')
   }
 }
@@ -60,7 +61,7 @@ const closeModal = async() => {
 </script>
 
 <template>
-  <div class = "login-view">
+  <div class = "find-view">
     <LoginForm
         v-model:loginId="form.loginId"
         v-model:password="form.password"
@@ -78,7 +79,7 @@ const closeModal = async() => {
 
 <style>
 
-.login-view{
+.find-view{
   display: flex;
   flex-direction: column;
   align-items: center;
