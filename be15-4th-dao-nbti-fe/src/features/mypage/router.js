@@ -11,6 +11,7 @@ export default [
         path: '/mypage',
         component: LayoutMypage,
         children: [
+            { path: '', redirect: 'test'},
             { path: 'test', name: 'TestResultListView', component: TestResultListView },
             { path: 'test/:id', name: 'TestDetailView', component: TestDetailView },
             { path: 'study', name: 'StudyListView', component: StudyListView },

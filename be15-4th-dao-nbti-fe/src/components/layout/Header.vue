@@ -7,7 +7,7 @@
       <RouterLink to ="/" class="link">검사</RouterLink>
       <RouterLink to="/" class="link">학습</RouterLink>
       <template v-if="authStore.isAuthenticated">
-        <RouterLink to ="/" class="link">마이페이지</RouterLink>
+        <RouterLink to ="/mypage/test" class="link">마이페이지</RouterLink>
         <div  class="button" @click = "handleLogout">로그아웃</div>
       </template>
      <template v-else>

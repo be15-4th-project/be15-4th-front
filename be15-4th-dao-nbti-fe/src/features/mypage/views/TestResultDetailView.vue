@@ -1,46 +1,76 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { fetchTestDetail } from '@/features/mypage/api.js'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { fetchTestDetail, fetchTestResultList } from '@/features/mypage/api.js'
 import RadarChart from '@/features/mypage/components/RadarChart.vue'
-import LineChart from '@/features/mypage/components/LineChart.vue'
 
-const route = useRoute()
-const testResultId = route.params.id
+// 라우팅
+const route         = useRoute()
+const router        = useRouter()
+const testResultId  = route.params.id
 
-const detail = ref(null)
-const loading = ref(true)
+// 로딩 & 원본 데이터
+const loading       = ref(true)
+const detail        = ref({
+  scores:       [],
+  aiText:       '',
+  createdAt:    ''
+})
 
-const radarLabels = ['언어 이해', '시사 상식', '지각 추론', '공간 지각력', '작업 기억', '처리 속도']
-const radarScores = ref([])
-const lineLabels = ref([])
-const lineScores = ref([])
+// 차트 데이터 바인딩
+const radarLabels  = ref([])
+const radarScores  = ref([])
+const lineLabels   = ref([])
+const lineScores   = ref([])
+
+// 카테고리별 아이콘 맵
 const categoryIcons = {
-  '언어 이해': new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
-  '시사 상식': new URL('@/assets/images/common_sense.png', import.meta.url).href,
-  '지각 추론': new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
+  '언어 이해':   new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
+  '시사 상식':   new URL('@/assets/images/common_sense.png', import.meta.url).href,
+  '지각 추론':   new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
   '공간 지각력': new URL('@/assets/images/spatial_perception.png', import.meta.url).href,
-  '작업 기억': new URL('@/assets/images/work_memory.png', import.meta.url).href,
-  '처리 속도': new URL('@/assets/images/processing_speed.png', import.meta.url).href
+  '작업 기억':   new URL('@/assets/images/work_memory.png', import.meta.url).href,
+  '처리 속도':   new URL('@/assets/images/processing_speed.png', import.meta.url).href
 }
 
-const fetchDetail = async () => {
+// 데이터 로드
+async function loadDetail() {
   loading.value = true
   try {
-    const res = await fetchTestDetail(testResultId)
-    detail.value = res.data.data
-    radarScores.value = detail.value.categoryScores || []
-    lineLabels.value = detail.value.scoreHistory.map(item => item.date)
-    lineScores.value = detail.value.scoreHistory.map(item => item.score)
-  } catch (e) {
-    console.error('상세 정보 불러오기 실패', e)
+    // 1) 상세 정보
+    const resDetail = await fetchTestDetail(testResultId)
+    const payload   = resDetail.data.data
+    detail.value    = payload
+
+    // Radar 차트
+    const rawScores = payload.scores || []
+    radarLabels.value = rawScores.map(s => s.categoryName)
+    radarScores.value = rawScores.map(s => s.score)
+
+    // AI 텍스트, 날짜는 template에서 detail.aiText / detail.createdAt 사용
+
+    // 2) 총점 이력(Line 차트) — 목록 API 호출
+    const resList = await fetchTestResultList({ page: 0, size: 10 })
+    const items   = resList.data.data.content || []
+    items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    const recent  = items.reverse()
+    lineLabels.value = recent.map(i =>
+        new Date(i.createdAt)
+            .toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' })
+    )
+    lineScores.value = recent.map(i => i.totalScore)
+
+  } catch (err) {
+    console.error('상세 정보 로드 실패', err)
   } finally {
     loading.value = false
   }
 }
 
-onMounted(fetchDetail)
+// 마운트 시 호출
+onMounted(loadDetail)
 </script>
+
 
 <template>
   <main>
@@ -83,7 +113,7 @@ onMounted(fetchDetail)
         <!-- AI 분석 -->
         <div class="ai-summary-card">
           <p><strong>AI 분석 결과:</strong></p>
-          <p>{{ detail?.summary || '요약 정보 없음' }}</p>
+          <p>{{ detail.aiText    || '요약 정보 없음' }}</p>
         </div>
       </div>
     </section>
