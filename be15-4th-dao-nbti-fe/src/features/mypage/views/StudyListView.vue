@@ -1,76 +1,68 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { fetchStudyResults } from '@/features/mypage/api.js'
 import Pagination from '@/features/mypage/components/Pagination.vue'
 
-// --- 1. 더미 데이터 생성 함수 ---
-function makeDummy(count) {
-  return Array.from({ length: count }, (_, i) => ({
-    studyId:         100 + i,
-    topCategoryName: ['언어 이해','지각 추론','작업 기억'][i % 3],
-    correctCount:    (i % 6) + 1,
-    totalCount:      6,
-    solvedAt:        `2025-05-${String((i % 28) + 1).padStart(2,'0')}T0${(i%12)}:00:00`
-  }))
-}
+// --- 필터 상태 ---
+const year  = ref('')
+const month = ref('')
+// 필요하다면 parentCategoryId 필터도 선언하세요
+// const parentCategoryId = ref('')
 
-// --- 2. 상태 정의 ---
-const studyList   = ref([])
-const loading     = ref(false)
+// --- 데이터 & 로딩 ---
+const studyList = ref([])
+const loading   = ref(false)
 
-const year        = ref('')
-const month       = ref('')
-const sort        = ref('desc')
-const yearOptions = [2025, 2024]
+// --- 페이지네이션 상태 (서버 기반) ---
+const currentPage = ref(1)    // 1-based
+const pageSize    = ref(10)
+const totalItems  = ref(0)
 
-// 카테고리 아이콘 (실제 경로에 맞게 조정하세요)
+// --- 카테고리 아이콘 맵 (경로 조정) ---
 const categoryIcons = {
   '언어 이해': new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
+  '시사 상식': new URL('@/assets/images/common_sense.png', import.meta.url).href,
   '지각 추론': new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
+  '공간 지각력': new URL('@/assets/images/spatial_perception.png', import.meta.url).href,
   '작업 기억': new URL('@/assets/images/work_memory.png', import.meta.url).href,
+  '처리 속도': new URL('@/assets/images/processing_speed.png', import.meta.url).href
 }
 
-// --- 3. 페이지네이션 상태 ---
-const currentPage = ref(1)
-const pageSize    = ref(10)
+// --- API 호출 함수 ---
+async function fetchData() {
+  loading.value = true
+  try {
+    const res = await fetchStudyResults({
+      year:  year.value || undefined,
+      month: month.value || undefined,
+      // parentCategoryId: parentCategoryId.value || undefined,
+      page:  currentPage.value - 1,  // 0-based index
+      size:  pageSize.value
+    })
+    const { content, pagination } = res.data.data
+    studyList.value   = content
+    currentPage.value = pagination.currentPage
+    totalItems.value  = pagination.totalItems
+  } catch (err) {
+    console.error('학습 내역 로드 실패', err)
+  } finally {
+    loading.value = false
+  }
+}
 
-// --- 4. 정렬된 리스트 (client-side) ---
-const sortedList = computed(() =>
-    [...studyList.value].sort((a, b) =>
-        sort.value === 'desc'
-            ? new Date(b.solvedAt) - new Date(a.solvedAt)
-            : new Date(a.solvedAt) - new Date(b.solvedAt)
-    )
-)
-
-// --- 5. 페이징된 리스트 ---
-const paginatedList = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return sortedList.value.slice(start, start + pageSize.value)
-})
-
-// --- 6. totalItems를 computed로 변경 ---
-const totalItems = computed(() => sortedList.value.length)
-
-// --- 7. 페이지 변경 핸들러 ---
+// --- 검색 & 페이지 변경 핸들러 ---
+function onSearch() {
+  currentPage.value = 1
+  fetchData()
+}
 function onPageChange(page) {
   currentPage.value = page
+  fetchData()
 }
 
-// --- 8. fetchData: 더미 재설정용 ---
-function fetchData() {
-  loading.value = true
-  setTimeout(() => {
-    studyList.value = makeDummy(20)
-    loading.value = false
-  }, 200)
-}
-
-// --- 9. 초기 더미 세팅 ---
-onMounted(() => {
-  studyList.value = makeDummy(20)
-})
+// --- 컴포넌트 초기화 ---
+onMounted(fetchData)
 </script>
-
 
 <template>
   <main>
@@ -82,7 +74,8 @@ onMounted(() => {
         <label for="year">년도</label>
         <select v-model="year" id="year">
           <option value="">전체</option>
-          <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+          <option value="2025">2025년</option>
+          <option value="2024">2024년</option>
         </select>
 
         <label for="month">월</label>
@@ -91,35 +84,46 @@ onMounted(() => {
           <option v-for="m in 12" :key="m" :value="m">{{ m }}월</option>
         </select>
 
-        <label for="sort">분야</label>
-        <select v-model="sort" id="sort">
-          <option value="desc">전체</option>
-          <option value="asc">언어 이해</option>
-          <option value="asc">시사 상식</option>
+        <!-- 상위 카테고리 필터가 필요하면 주석 해제 -->
+        <!--
+        <label for="category">분야</label>
+        <select v-model="parentCategoryId" id="category">
+          <option value="">전체</option>
+          <option value="1">언어 이해</option>
+          <option value="2">지각 추론</option>
+          <option value="3">작업 기억</option>
         </select>
+        -->
 
-        <button @click="fetchData">검색</button>
+        <button @click="onSearch">검색</button>
       </div>
 
       <!-- 리스트 -->
-      <div v-if="loading">불러오는 중...</div>
-      <div v-else-if="paginatedList.length === 0">학습 내역이 없습니다.</div>
+      <div v-if="loading" class="loading">불러오는 중...</div>
+      <div v-else-if="!studyList.length" class="empty">학습 내역이 없습니다.</div>
       <div v-else class="study-list">
-        <article class="study-item" v-for="item in paginatedList" :key="item.studyId">
+        <article class="study-item" v-for="item in studyList" :key="item.studyId">
           <div class="study-item-inner">
-            <img :src="categoryIcons[item.topCategoryName]" alt="" class="category-icon" />
+            <img
+                :src="categoryIcons[item.parentCategoryName]"
+                alt=""
+                class="category-icon"
+            />
             <div class="study-content">
               <div class="study-meta">
-                <div class="study-title">{{ item.topCategoryName }}</div>
-                <span>정답 {{ item.correctCount }} / {{ item.totalCount }}문항</span>
+                <div class="study-title">{{ item.parentCategoryName }}</div>
+                <span>
+                  정답 {{ item.correctCount }} / {{ item.totalCount }}문항
+                </span>
               </div>
               <div class="study-btn">
-                <span class="date">{{ item.solvedAt.slice(0, 10) }}</span>
+                <span class="date">{{ item.createdAt.slice(0, 10) }}</span>
                 <router-link
                     :to="`/mypage/study/${item.studyId}`"
                     class="btn-detail"
-                    :aria-label="`${formattedDate} 검사 상세 보기`"
-                >상세 보기
+                    :aria-label="`${item.createdAt.slice(0,10)} 검사 상세 보기`"
+                >
+                  상세 보기
                 </router-link>
               </div>
             </div>
@@ -159,18 +163,17 @@ onMounted(() => {
 .filter-bar label {
   font-size: 0.95rem;
 }
-.filter-bar select {
+.filter-bar select,
+.filter-bar button {
   padding: 0.4rem 0.6rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   background: #fff;
 }
 .filter-bar button {
-  padding: 0.45rem 1.2rem;
   background: #3b82f6;
   color: #fff;
   border: none;
-  border-radius: 6px;
   cursor: pointer;
 }
 .study-list {
@@ -179,7 +182,7 @@ onMounted(() => {
   gap: 1rem;
 }
 .study-item {
-  background: #ffffff;
+  background: #fff;
   padding: 1.2rem 1.5rem;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
@@ -202,19 +205,17 @@ onMounted(() => {
 .study-meta {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   font-size: 0.9rem;
   color: #555;
 }
 .study-btn {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 1rem;
   font-size: 0.9rem;
   color: #555;
-  gap: 20px;
 }
-.study-meta .date {
+.study-btn .date {
   color: #888;
 }
 .category-icon {
@@ -222,7 +223,6 @@ onMounted(() => {
   height: 60px;
   object-fit: contain;
 }
-
 .btn-detail {
   background: #3b82f6;
   color: white;
@@ -231,12 +231,15 @@ onMounted(() => {
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  white-space: nowrap;
-  text-align: center;
   transition: background 0.2s;
 }
-
 .btn-detail:hover {
   background: #1e40af;
+}
+.loading,
+.empty {
+  text-align: center;
+  color: #666;
+  padding: 2rem 0;
 }
 </style>

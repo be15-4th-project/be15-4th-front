@@ -15,8 +15,12 @@ export function fetchTestDetail(testResultId) {
     return api.get(`/test-result/${testResultId}`)
 }
 
-// 학습 결과 목록 조회 API
-export const fetchStudyResults = () => api.get('/mypage/studies')
+/**
+ * 학습 내역 조회
+ */
+export function fetchStudyResults(params = {}) {
+    return api.get('/mypage/studies', { params })
+}
 
 // 학습 결과 상세 조회 API
 export const fetchStudyDetail = (id) => api.get(`/mypage/studies/${id}`)
