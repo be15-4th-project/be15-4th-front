@@ -1,72 +1,79 @@
 <script setup>
-import { ref, computed } from 'vue'
-import {fetchTestResultList} from "@/features/mypage/api.js";
+import { ref, computed, watch, onMounted } from 'vue'
+import Pagination from '@/features/mypage/components/Pagination.vue'
 
-const studyList = ref([
-  {
-    studyId: 1,
-    topCategoryName: '언어 이해',
-    correctCount: 6,
-    totalCount: 6,
-    solvedAt: '2025-05-18T10:30:00'
-  },
-  {
-    studyId: 2,
-    topCategoryName: '지각 추론',
-    correctCount: 4,
-    totalCount: 6,
-    solvedAt: '2025-04-28T09:10:00'
-  },
-  {
-    studyId: 3,
-    topCategoryName: '작업 기억',
-    correctCount: 5,
-    totalCount: 6,
-    solvedAt: '2025-04-10T15:45:00'
-  }
-])
+// --- 1. 더미 데이터 생성 함수 ---
+function makeDummy(count) {
+  return Array.from({ length: count }, (_, i) => ({
+    studyId:         100 + i,
+    topCategoryName: ['언어 이해','지각 추론','작업 기억'][i % 3],
+    correctCount:    (i % 6) + 1,
+    totalCount:      6,
+    solvedAt:        `2025-05-${String((i % 28) + 1).padStart(2,'0')}T0${(i%12)}:00:00`
+  }))
+}
 
-const loading = ref(false)
-const year = ref('')
-const month = ref('')
-const sort = ref('desc')
+// --- 2. 상태 정의 ---
+const studyList   = ref([])
+const loading     = ref(false)
+
+const year        = ref('')
+const month       = ref('')
+const sort        = ref('desc')
 const yearOptions = [2025, 2024]
 
+// 카테고리 아이콘 (실제 경로에 맞게 조정하세요)
 const categoryIcons = {
   '언어 이해': new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
-  '시사 상식': new URL('@/assets/images/common_sense.png', import.meta.url).href,
   '지각 추론': new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
-  '공간 지각력': new URL('@/assets/images/spatial_perception.png', import.meta.url).href,
   '작업 기억': new URL('@/assets/images/work_memory.png', import.meta.url).href,
-  '처리 속도': new URL('@/assets/images/processing_speed.png', import.meta.url).href
 }
 
-const fetchData = async () => {
+// --- 3. 페이지네이션 상태 ---
+const currentPage = ref(1)
+const pageSize    = ref(10)
+
+// --- 4. 정렬된 리스트 (client-side) ---
+const sortedList = computed(() =>
+    [...studyList.value].sort((a, b) =>
+        sort.value === 'desc'
+            ? new Date(b.solvedAt) - new Date(a.solvedAt)
+            : new Date(a.solvedAt) - new Date(b.solvedAt)
+    )
+)
+
+// --- 5. 페이징된 리스트 ---
+const paginatedList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return sortedList.value.slice(start, start + pageSize.value)
+})
+
+// --- 6. totalItems를 computed로 변경 ---
+const totalItems = computed(() => sortedList.value.length)
+
+// --- 7. 페이지 변경 핸들러 ---
+function onPageChange(page) {
+  currentPage.value = page
+}
+
+// --- 8. fetchData: 더미 재설정용 ---
+function fetchData() {
   loading.value = true
-  try {
-    const params = {}
-    if (year.value) params.year = year.value
-    if (month.value) params.month = month.value
-    const res = await fetchTestResultList(params)
-    studyList.value = res.data.data.content || []
-  } catch (e) {
-    console.error('결과 불러오기 실패', e)
-  } finally {
+  setTimeout(() => {
+    studyList.value = makeDummy(20)
     loading.value = false
-  }
+  }, 200)
 }
 
-const sortedList = computed(() => {
-  return [...studyList.value].sort((a, b) => {
-    return sort.value === 'desc'
-        ? new Date(b.solvedAt) - new Date(a.solvedAt)
-        : new Date(a.solvedAt) - new Date(b.solvedAt)
-  })
+// --- 9. 초기 더미 세팅 ---
+onMounted(() => {
+  studyList.value = makeDummy(20)
 })
 </script>
 
+
 <template>
-  <main class="content">
+  <main>
     <section class="section">
       <h2 class="section-title">학습 내역 조회</h2>
 
@@ -84,10 +91,11 @@ const sortedList = computed(() => {
           <option v-for="m in 12" :key="m" :value="m">{{ m }}월</option>
         </select>
 
-        <label for="sort">정렬</label>
+        <label for="sort">분야</label>
         <select v-model="sort" id="sort">
-          <option value="desc">최신순</option>
-          <option value="asc">과거순</option>
+          <option value="desc">전체</option>
+          <option value="asc">언어 이해</option>
+          <option value="asc">시사 상식</option>
         </select>
 
         <button @click="fetchData">검색</button>
@@ -95,9 +103,9 @@ const sortedList = computed(() => {
 
       <!-- 리스트 -->
       <div v-if="loading">불러오는 중...</div>
-      <div v-else-if="sortedList.length === 0">학습 내역이 없습니다.</div>
+      <div v-else-if="paginatedList.length === 0">학습 내역이 없습니다.</div>
       <div v-else class="study-list">
-        <article class="study-item" v-for="item in sortedList" :key="item.studyId">
+        <article class="study-item" v-for="item in paginatedList" :key="item.studyId">
           <div class="study-item-inner">
             <img :src="categoryIcons[item.topCategoryName]" alt="" class="category-icon" />
             <div class="study-content">
@@ -118,6 +126,15 @@ const sortedList = computed(() => {
           </div>
         </article>
       </div>
+
+      <!-- 페이지네이션 -->
+      <Pagination
+          v-if="totalItems > pageSize"
+          :currentPage="currentPage"
+          :pageSize="pageSize"
+          :totalItems="totalItems"
+          @update:currentPage="onPageChange"
+      />
     </section>
   </main>
 </template>
