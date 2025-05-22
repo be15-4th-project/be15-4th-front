@@ -10,7 +10,7 @@ export const adminRoutes = [
         component: () => import('@/features/admin/views/UserListView.vue')
     },
     {
-        path: '/admin/manage-problem',
+        path: '/admin/problems',
         name: 'manage-problem',
         component: () => import('@/features/admin/views/ProblemSearchView.vue'),
     },

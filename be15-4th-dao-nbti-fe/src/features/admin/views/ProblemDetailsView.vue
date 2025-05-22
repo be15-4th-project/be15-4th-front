@@ -12,6 +12,7 @@ const parentCategories = ref([]);
 const categories = ref([]);
 const problem = ref({})
 const showDeleteModal = ref(false)  // 삭제 모달 상태 추가
+const showCancelEditModal = ref(false)
 
 const fetchCategories = async () => {
   const response = await api.get('/admin/categories')
@@ -44,11 +45,20 @@ const fetchProblem = async () => {
 onMounted(async () => {
   await fetchCategories();
   await fetchProblem();
+
 });
 
-watch(() => problem.value.parentCategory, () => {
-  problem.value.categoryId = ''
-});
+watch(
+    () => problem.value.parentCategory,
+    (newVal, oldVal) => {
+      if (oldVal !== undefined && newVal !== oldVal) {
+        problem.value.categoryId = '';
+      }
+    },
+    // 첫 로딩에서 빈 문자열 매핑하지 않게
+    { immediate: false }
+);
+
 
 function startEdit() {
   isEditMode.value = true
@@ -65,7 +75,7 @@ const onConfirmDelete = async () => {
   try {
     await api.delete(`/admin/problems/${problem.value.problemId}`)
     alert('삭제가 완료되었습니다.')
-    router.push('/admin/problems')  // 목록 페이지 등으로 이동
+    router.replace('/admin/problems')  // 목록 페이지 등으로 이동
   } catch (error) {
     alert('삭제 중 오류가 발생했습니다.')
   }
@@ -74,6 +84,39 @@ const onConfirmDelete = async () => {
 // 모달 취소 눌렀을 때 닫기
 const onCancelDelete = () => {
   showDeleteModal.value = false
+}
+
+const goToList = () => {
+  router.push('/admin/problems');
+}
+
+const cancelEdit = () => {
+  showCancelEditModal.value = true;
+  isEditMode.value = false;
+  fetchProblem(); // 결과 다시 받아오기 (현재 상태로)
+}
+
+const onCancelEdit = () => {
+  showCancelEditModal.value = false
+}
+
+const completeEdit = async () => {
+  const request = {
+    categoryId: problem.value.categoryId,
+    level: problem.value.level,
+    answerTypeId: problem.value.answerTypeId,
+    correctAnswer: problem.value.correctAnswer,
+    contentImageUrl: problem.value.contentImageUrl
+  };
+
+  try {
+    await api.put(`/admin/problems/${problem.value.problemId}`, request);
+    alert('수정이 완료되었습니다.');
+    isEditMode.value = false;  // 수정 모드 종료
+    await fetchProblem();      // 수정 후 최신 데이터 다시 불러오기
+  } catch (e) {
+    console.log('수정 실패');
+  }
 }
 </script>
 
@@ -94,12 +137,12 @@ const onCancelDelete = () => {
             <template v-if="!isEditMode">
             <button class="btn" @click="startEdit">수정하기</button>
             <button class="btn" @click="onDeleteClick">삭제</button>
-            <button class="btn">목록으로</button>
+            <button class="btn" @click="goToList">목록으로</button>
             </template>
             <template v-else>
-              <button class="btn">수정 완료</button>
+              <button class="btn" @click="completeEdit">수정 완료</button>
               <button class="btn" @click="onDeleteClick">삭제</button>
-              <button class="btn">취소</button>
+              <button class="btn" @click="cancelEdit">취소</button>
             </template>
           </div>
         </div>
@@ -108,21 +151,21 @@ const onCancelDelete = () => {
         <form>
           <div class="form-group" style="margin-bottom:1.5rem;">
             <label for="problem-id">문제 번호</label>
-            <input type="text" id="problem-id" :value="problem.problemId" readonly>
+            <input type="text" id="problem-id" :value="problem.problemId" readonly :class="{ 'readonly-look': !isEditMode }">
           </div>
 
           <!-- 상위/하위 분야를 가로 배치 -->
           <div class="form-row">
             <div class="form-group">
               <label for="category-parent">상위 분야</label>
-              <select id="category-parent" :disabled="!isEditMode" v-model="problem.parentCategory">
+              <select id="category-parent" :disabled="!isEditMode" v-model="problem.parentCategory" :class="{ 'readonly-look': !isEditMode }">
                 <option key="" value ="">선택</option>
                 <option v-for="parent in parentCategories" :key="parent.categoryId" :value="parent.categoryId">{{ parent.name }}</option>
               </select>
             </div>
             <div class="form-group">
               <label for="category-child">하위 분야</label>
-              <select id="category-child" :disabled="!isEditMode" v-model="problem.categoryId">
+              <select id="category-child" :disabled="!isEditMode" v-model="problem.categoryId" :class="{ 'readonly-look': !isEditMode }">
                 <option key="" value ="">선택</option>
                 <option v-for="child in filteredCategories" :key="child.categoryId" :value="child.categoryId">{{ child.name }}</option>
               </select>
@@ -133,7 +176,7 @@ const onCancelDelete = () => {
           <div class="form-row">
             <div class="form-group">
               <label for="difficulty">난이도</label>
-              <select id="difficulty" :disabled="!isEditMode" v-model="problem.level">
+              <select id="difficulty" :disabled="!isEditMode" v-model="problem.level" :class="{ 'readonly-look': !isEditMode }">
                 <option value="">선택</option>
                 <option value="1">레벨 1</option>
                 <option value="2">레벨 2</option>
@@ -142,7 +185,7 @@ const onCancelDelete = () => {
             </div>
             <div class="form-group">
               <label for="answer-type">답안 유형</label>
-              <select id="answer-type" :disabled="!isEditMode" v-model="problem.answerTypeId">
+              <select id="answer-type" :disabled="!isEditMode" v-model="problem.answerTypeId" :class="{ 'readonly-look': !isEditMode }">
                 <option value="">선택</option>
                 <option value="1">선다형</option>
                 <option value="2">단답형</option>
@@ -154,7 +197,7 @@ const onCancelDelete = () => {
           <!-- 본문 이미지 업로드 -->
           <div class="form-group" style="margin-bottom:1.5rem;">
             <label for="image-upload">본문 이미지</label>
-            <input type="file" id="image-upload" accept="image/*" :disabled="!isEditMode">
+            <input type="file" id="image-upload" accept="image/*" :disabled="!isEditMode" :class="{ 'readonly-look': !isEditMode }">
           </div>
 
           <div class="preview-box">
@@ -163,7 +206,7 @@ const onCancelDelete = () => {
 
           <div class="form-group">
             <label for="correct-answer">정답</label>
-            <input type="text" id="correct-answer" v-model="problem.correctAnswer" :readonly="!isEditMode">
+            <input type="text" id="correct-answer" v-model="problem.correctAnswer" :readonly="!isEditMode" :class="{ 'readonly-look': !isEditMode }">
           </div>
         </form>
       </div>
@@ -178,6 +221,14 @@ const onCancelDelete = () => {
         @cancel="onCancelDelete"
     >
       <p>정말 삭제하시겠습니까?</p>
+    </SmallModal>
+
+    <SmallModal
+        :visible="showCancelEditModal"
+        :confirmVisible="false"
+        @cancel="onCancelEdit"
+    >
+      <p>문제 수정이 취소되었습니다.</p>
     </SmallModal>
 
   </main>
@@ -251,4 +302,11 @@ const onCancelDelete = () => {
   margin-bottom: 1rem;
 }
 
+/* readonly지만 disabled처럼 스타일 부여 */
+.readonly-look {
+  background-color: #f5f5f5;  /* 회색 배경 */
+  color: #777;                /* 텍스트 색상 */
+  cursor: not-allowed;        /* 마우스 커서 */
+  pointer-events: none;       /* 클릭 막기 */
+}
 </style>
