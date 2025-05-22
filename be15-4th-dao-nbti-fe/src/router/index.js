@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import mainRoutes from '@/features/main/router.js'
 import LayoutDefault from "@/components/layout/LayoutDefault.vue";
+import mypageRoutes from '@/features/mypage/router.js'
 import { adminRoutes } from "@/features/admin/router.js";
 import {userRoutes} from "@/features/user/router.js";
 
@@ -14,6 +15,7 @@ const router = createRouter({
             component: LayoutDefault,
             children: [
                 ...mainRoutes,
+                ...mypageRoutes,
                 ...adminRoutes,
                 ...userRoutes,
             ]
