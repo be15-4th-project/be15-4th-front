@@ -60,6 +60,9 @@ export function fetchObjections(params = {}) {
 export function fetchObjectionDetail(objectionId) {
     return api.get(`/mypage/objections/${objectionId}`)
 }
-/*
+
+/**
+* 회원 정보 조회
+ **/
 export const fetchUserInfo = () => api.get('/user/info')
-*/
+
