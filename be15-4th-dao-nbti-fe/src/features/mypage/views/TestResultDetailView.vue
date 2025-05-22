@@ -43,7 +43,7 @@ onMounted(fetchDetail)
 </script>
 
 <template>
-  <main class="content">
+  <main>
     <section class="section">
       <h2 class="section-title">검사 상세 내역</h2>
 
