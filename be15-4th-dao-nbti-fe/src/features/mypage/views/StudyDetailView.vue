@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
-// import BigModal from '@/components/common/BigModal.vue'
+import BigModal from '@/components/common/BigModal.vue'
 
 const route = useRoute()
 const studyId = route.params.id
@@ -69,10 +69,11 @@ function submitObjection() {
   })
   objectionVisible.value = false
 }
+
 </script>
 
 <template>
-  <main class="content">
+  <main>
     <section class="section">
       <h2 class="section-title">학습 상세 내역</h2>
 
@@ -115,7 +116,7 @@ function submitObjection() {
       </div>
     </section>
 
-    <!--    <BigModal
+        <BigModal
             :visible="objectionVisible"
             confirm-visible
             confirm-text="제출"
@@ -134,7 +135,7 @@ function submitObjection() {
               ></textarea>
             </div>
           </template>
-        </BigModal>-->
+        </BigModal>
   </main>
 </template>
 
