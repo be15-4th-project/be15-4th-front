@@ -14,7 +14,8 @@ const problem = ref({
   level: '',
   answerTypeId: '',
   correctAnswer: '',
-  contentImageUrl: ''
+  // contentImageUrl: ''  // 이 필드는 이제 안 씀
+  imageFile: null  // 이미지 파일 저장용
 });
 
 const fetchCategories = async () => {
@@ -41,41 +42,69 @@ const cancelCreate = () => {
 const createProblem = async () => {
   if (!validateRequest()) return;
 
-  const request = {
+  // 문제 생성 요청 데이터 (이미지 파일 제외한 필드만)
+  const problemCreateRequest = {
     categoryId: problem.value.categoryId,
     level: problem.value.level,
     answerTypeId: problem.value.answerTypeId,
-    correctAnswer: problem.value.correctAnswer,
-    contentImageUrl: problem.value.contentImageUrl
+    correctAnswer: problem.value.correctAnswer
   }
 
+  if (!problem.value.imageFile) {
+    alert('본문 사진을 등록하세요.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('problemCreateRequest', new Blob([JSON.stringify(problemCreateRequest)], { type: 'application/json' }));
+  formData.append('imageFile', problem.value.imageFile);
+
   try {
-    await api.post('/admin/problems', request)
-    alert('문제가 성공적으로 등록되었습니다.')
-    router.push('/admin/problems/')
+    await api.post('/admin/problems', formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    alert('문제가 성공적으로 등록되었습니다.');
+    router.push('/admin/problems/');
   } catch (e) {
-    alert('문제 등록에 실패했습니다.')
-    console.error(e)
+    alert('문제 등록에 실패했습니다.');
+    console.error(e);
   }
 }
 
 const validateRequest = () => {
   if (!problem.value.categoryId) {
-    return alert('분야를 선택하세요.'); // 반환값은 undefined
+    alert('분야를 선택하세요.');
+    return false;
   }
   if (!problem.value.level) {
-    return alert('난이도를 선택하세요.');
+    alert('난이도를 선택하세요.');
+    return false;
   }
   if (!problem.value.answerTypeId) {
-    return alert('답안 유형을 선택하세요.');
+    alert('답안 유형을 선택하세요.');
+    return false;
   }
   if (!problem.value.correctAnswer) {
-    return alert('정답을 입력하세요.');
+    alert('정답을 입력하세요.');
+    return false;
   }
-  if (!problem.value.contentImageUrl) {
-    return alert('본문 사진을 등록하세요.');
+  if (!problem.value.imageFile) {
+    alert('본문 사진을 등록하세요.');
+    return false;
   }
   return true;
+};
+
+const uploadImage = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // 이미지 URL을 서버에 업로드하지 않고 바로 저장하지 않고,
+  // 파일 객체 자체를 저장
+  problem.value.imageFile = file;
+
+  // 미리보기용으로 URL 생성
+  problem.value.contentImageUrl = URL.createObjectURL(file);
 };
 </script>
 
@@ -152,7 +181,7 @@ const validateRequest = () => {
 
           <div class="form-group">
             <label for="image-upload">본문 이미지</label>
-            <input type="file" id="image-upload" accept="image/*" />
+            <input type="file" id="image-upload" accept="image/*" @change="uploadImage"/>
           </div>
 
           <div class="preview-box">
@@ -228,5 +257,11 @@ const validateRequest = () => {
   align-items: center;
   color: #999;
   margin-bottom: 1rem;
+}
+
+.preview-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 </style>
