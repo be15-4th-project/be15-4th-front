@@ -76,7 +76,6 @@ onBeforeUnmount(() => {
   height: auto;
   cursor: pointer;
   overflow: hidden;
-  cursor: pointer;
 }
 
 .image {
