@@ -65,7 +65,6 @@ const closeModal = async() => {
       :visible="modalVisible"
       @cancel="closeModal"
   ><p>{{ modalMessage }}</p>
-
   </small-modal>
 
 </template>
