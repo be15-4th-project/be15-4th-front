@@ -18,3 +18,7 @@ import api from '@/api/axios.js';
 export function fetchUserList(queryParams) {
     return api.get(`/user/list?`+queryParams);
 }
+
+export function fetchTestResultList(queryParams) {
+    return api.get(`/test-result/list/admin?`+queryParams);
+}

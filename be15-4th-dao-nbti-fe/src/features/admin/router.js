@@ -33,7 +33,12 @@ export const adminRoutes = [
         path: '/admin/objections/:objectionId',
         name: 'objection-details',
         component: () => import('@/features/admin/views/ObjectionDetailsView.vue')
-    }
+    },
+    {
+        path: '/admin/test',
+        name: 'test-list',
+        component: () => import('@/features/admin/views/TestListView.vue')
+    },
 
 
     // path: '/admin',
