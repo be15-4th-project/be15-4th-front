@@ -1,9 +1,6 @@
 <script setup>
 import Header from "@/components/layout/Header.vue";
-import {ref} from "vue";
-import Sidebar from "@/components/layout/Sidebar.vue";
 
-const sidebarVisible = ref(true);
 </script>
 
 <template>
@@ -12,7 +9,6 @@ const sidebarVisible = ref(true);
     <Header/>
     <!-- 좌측 사이드바 + 콘텐츠 섹션 -->
     <div class="content-wrapper">
-      <Sidebar/>
       <main class="main-content" >
         <RouterView/>
       </main>
