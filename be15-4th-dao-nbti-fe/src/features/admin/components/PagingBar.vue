@@ -42,11 +42,30 @@ const changePage = (page) => {
 };
 
 const visiblePages = computed(() => {
-  const range = 2;
-  const start = Math.max(1, props.currentPage - range);
-  const end = Math.min(props.totalPages, props.currentPage + range);
+  const range = 2; // currentPage 기준 좌우 2개씩, 총 5개
+  let start = props.currentPage - range;
+  let end = props.currentPage + range;
+
+  // 범위 조정: 시작이 1보다 작으면 끝을 보정
+  if (start < 1) {
+    end += 1 - start;
+    start = 1;
+  }
+
+  // 끝이 총 페이지 수를 넘으면 시작을 보정
+  if (end > props.totalPages) {
+    start -= end - props.totalPages;
+    end = props.totalPages;
+  }
+
+  // 여전히 start가 1보다 작을 수 있음
+  start = Math.max(1, start);
+
   const pages = [];
-  for (let i = start; i <= end; i++) pages.push(i);
+  for (let i = start; i <= end && pages.length < 5; i++) {
+    pages.push(i);
+  }
+
   return pages;
 });
 </script>
