@@ -2,9 +2,11 @@
 import {ref, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import api from '@/api/axios.js'
+import {useToast} from "vue-toastification";
 
 const route = useRoute()
 const router = useRouter()
+const toast= useToast()
 
 const objectionId = route.params.objectionId
 const objection = ref(null)
@@ -16,8 +18,8 @@ const fetchObjection = async () => {
     const response = await api.get(`/admin/objections/${objectionId}`)
     objection.value = response.data.data.objectionDetails;
   } catch (e) {
-    alert('이의 제기 정보를 불러오지 못했습니다.')
-    console.error(e)
+    toast.error('이의 제기 정보를 불러오지 못했습니다.')
+    // console.error(e)
     router.push('/admin/objections')
   } finally {
     isLoading.value = false;
@@ -26,7 +28,7 @@ const fetchObjection = async () => {
 
 const startEditing = () => {
   if (objection.value.status !== 'PENDING') {
-    alert('이미 처리 완료된 이의 제기입니다.');
+    toast.error('이미 처리 완료된 이의 제기입니다.');
     return;
   }
   isEditing.value = true
@@ -39,22 +41,22 @@ const updateObjection = async () => {
       status: objection.value.status,
       information: objection.value.information,
     })
-    alert('처리가 완료되었습니다.')
+    toast.success('처리가 완료되었습니다.')
     isEditing.value = false
     router.push('/admin/objections')
   } catch (e) {
-    alert('처리 중 오류가 발생했습니다.')
-    console.error(e)
+    toast.error('처리 중 오류가 발생했습니다.')
+    // console.error(e)
   }
 }
 
 const validateRequest = () => {
   if (objection.value.status === 'PENDING') {
-    alert('변경할 상태는 승인 또는 반려여야 합니다.');
+    toast.error('변경할 상태는 승인 또는 반려여야 합니다.');
     return false;
   }
   if (objection.value.status === 'REJECTED' && !objection.value.information) {
-    alert('이의 제기 반려 시 처리 내용을 필수로 입력해야 합니다.');
+    toast.error('이의 제기 반려 시 처리 내용을 필수로 입력해야 합니다.');
     return false;
   }
   return true;
