@@ -14,3 +14,13 @@ export function getProblems() {
 export function submitAnswers(payload) {
     return api.post(`/test-result`, payload );
 }
+
+/* 4. 문제 결과 가져오기 */
+export function getTestResult(testResultId) {
+    return api.get(`/test-result/now/${testResultId}`, testResultId)
+}
+
+/* 5. 검사 결과 마이페이지에 저장 하기 */
+export function saveResultToMyPage() {
+    return api.put('/test-result/my-page');
+}
