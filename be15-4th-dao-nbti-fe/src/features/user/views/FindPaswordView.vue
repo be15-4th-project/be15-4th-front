@@ -3,44 +3,41 @@ import {computed, reactive, ref} from "vue";
 import LoginForm from "@/features/user/components/LoginForm.vue";
 import {useAuthStore} from "@/stores/auth.js";
 import {useRouter} from "vue-router";
-import {loginUser} from "@/features/user/api.js";
+import {fetchFindPassword, loginUser} from "@/features/user/api.js";
 import SmallModal from "@/components/common/SmallModal.vue";
 import {storeToRefs} from "pinia";
+import FindPasswordForm from "@/features/user/components/FindPasswordForm.vue";
 
 const router = useRouter();
 const authStore = useAuthStore()
 const { isAuthenticated, userRole } = storeToRefs(authStore)
-const isUser = computed(() =>isAuthenticated.value && userRole.value === 'USER')
-const isAdmin = computed(() =>isAuthenticated.value && userRole.value === 'ADMIN')
+const isUser = computed(() => isAuthenticated.value && userRole.value === 'USER')
+const isAdmin = computed(() => isAuthenticated.value && userRole.value === 'ADMIN')
 const form = reactive({
   loginId: '',
-  password: ''
+  name: ''
 })
 const modalVisible = ref(false)
 const modalMessage = ref('')
-const loginSuccess = ref(false);
+const authSuccess = ref(false);
 
 
-const login = async () => {
-  console.log(`${form.loginId} ${form.password}`);
+const findPassword = async () => {
+  console.log(`${form.loginId} ${form.name}`);
   try {
-    const response = await loginUser({
+    const response = await fetchFindPassword({
       accountId: form.loginId,
-      password: form.password
+      name: form.name
     });
 
-    if (response.data.success === false) {
-      throw new Error(response.data.message);
-    }
-
-    console.log('로그인 성공', response.data)
+    console.log('통신 성공', response.data)
     const accessToken = response.data.data.accessToken;
     console.log(`토큰 ${accessToken}`)
     authStore.setAuth(accessToken);
-    modalMessage.value = "로그인에 성공했습니다."
-    loginSuccess.value=true
+    modalMessage.value = "인증에 성공했습니다."
+    authSuccess.value=true
   }  catch (error) {
-    modalMessage.value = error.response?.data?.message;
+    modalMessage.value = '일치하는 계정이 없습니다.'
 
   } finally {
     modalVisible.value = true;
@@ -49,24 +46,19 @@ const login = async () => {
 
 const closeModal = async() => {
   modalVisible.value=false;
-  if(loginSuccess.value===true){
-    console.log('권한 : '+isUser.value)
-    if(isUser.value)
-      await router.push('/');
-    else if(isAdmin.value)
-      await router.push('/admin')
-  }
+  if(authSuccess.value === true)
+    await router.push('/reset-password');
 }
 
 </script>
 
 <template>
   <div class = "find-view">
-    <LoginForm
+    <FindPasswordForm
         v-model:loginId="form.loginId"
-        v-model:password="form.password"
-        @login="login"
-        />
+        v-model:name="form.name"
+        @check="findPassword"
+    />
 
   </div>
   <small-modal
@@ -86,4 +78,4 @@ const closeModal = async() => {
   height: 100%;
   padding-top : 80px;
 }
- </style>
+</style>

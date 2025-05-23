@@ -20,3 +20,11 @@ export function signup(userInfo) {
     return api.post(`/user/signup`,userInfo);
 }
 
+export function fetchFindPassword(userInfo) {
+    return api.post(`/user/find-password`,userInfo);
+}
+
+export function fetchResetPassword(userInfo) {
+    return api.post(`/user/reset-password`,userInfo);
+}
+
