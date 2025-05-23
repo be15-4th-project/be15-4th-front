@@ -1,7 +1,7 @@
 export const testRoutes = [
     {
         path: '/test',
-        name: 'Test',
+        name: 'TestStart',
         component: () => import('@/features/test/views/TestView.vue')
     }
 ]
