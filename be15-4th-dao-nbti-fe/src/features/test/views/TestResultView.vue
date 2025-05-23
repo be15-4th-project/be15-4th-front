@@ -90,8 +90,21 @@ function closeModal() {
 
 /* 마이페이지에 저장하는 api*/
 async function saveToMyPage() {
-    await saveResultToMyPage();
-    toast.success('마이페이지에 저장되었습니다.');
+    try {
+        await saveResultToMyPage(testResultId);
+        toast.success('마이페이지에 저장되었습니다.');
+    } catch (e) {
+        if (e.response && e.response.data && e.response.data.message) {
+            const code = e.response.data.errorCode;
+
+            if (code === '30005') {
+                toast.error('해당 검사는 본인이 한 검사가 아닙니다.');
+            }
+
+        } else {
+            toast.error('마이페이지 저장에 실패했습니다. 다시 시도해주세요.');
+        }
+    }
 }
 
 /* main 페이지로 이동하기 */
