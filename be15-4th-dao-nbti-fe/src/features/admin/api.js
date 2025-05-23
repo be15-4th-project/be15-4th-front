@@ -26,3 +26,9 @@ export function fetchTestResultList(queryParams) {
 export function fetchTestResultDetail(id){
     return api.get(`/test-result/${id}/admin`);
 }
+export function fetchStudyResult(queryParams){
+    return api.get(`/admin/study?${queryParams}`);
+}
+export function fetchStudyResultDetail(studyResultId){
+    return api.get(`/study/result/${studyResultId}`)
+}
