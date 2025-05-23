@@ -1,29 +1,42 @@
 <template>
   <div class="header">
     <div class="container">
-      <div class="text-wrapper">
-        <img class="logo" :src="logo" alt="두뇌 트레이닝 로고" />NBTI</div>
-    </div>
-
-    <div class="navbar">
       <template v-if="!isAdmin">
-        <RouterLink to ="/" class="link">검사 및 학습</RouterLink>
-      </template>
-      <template v-if="isUser">
-        <RouterLink to ="/mypage/test" class="link">마이페이지</RouterLink>
-      </template>
-      <template v-if="isAuthenticated">
-        <div  class="button" @click = "handleLogout">로그아웃</div>
+        <RouterLink to="/">
+          <div class="text-wrapper">
+            <img class="logo" :src="logo" alt="두뇌 트레이닝 로고"/>NBTI
+          </div>
+        </RouterLink>
       </template>
       <template v-else>
-        <RouterLink to ="/login" class="link">로그인</RouterLink>
-        <RouterLink to ="/signup" class="div">회원가입</RouterLink>
+        <RouterLink to="/admin">
+          <div class="text-wrapper">
+            <img class="logo" :src="logo" alt="두뇌 트레이닝 로고"/>NBTI
+          </div>
+        </RouterLink>
       </template>
     </div>
+
+  <div class="navbar">
+    <template v-if="!isAdmin">
+      <RouterLink to="/" class="link">검사 및 학습</RouterLink>
+    </template>
+    <template v-if="isUser">
+      <RouterLink to="/mypage/test" class="link">마이페이지</RouterLink>
+    </template>
+    <template v-if="isAuthenticated">
+      <div class="button" @click="handleLogout">로그아웃</div>
+    </template>
+    <template v-else>
+      <RouterLink to="/login" class="link">로그인</RouterLink>
+      <RouterLink to="/signup" class="div">회원가입</RouterLink>
+    </template>
   </div>
-  <small-modal :visible="modalVisible"  @cancel="closeModal" >
+  </div>
+
+  <small-modal :visible="modalVisible" @cancel="closeModal">
     <p>
-      {{modalMessage}}
+      {{ modalMessage }}
     </p>
 
   </small-modal>
@@ -40,13 +53,13 @@ import {storeToRefs} from "pinia";
 
 const router = useRouter()
 const auth = useAuthStore()
-const { isAuthenticated, userRole } = storeToRefs(auth)
+const {isAuthenticated, userRole} = storeToRefs(auth)
 const isUser = computed(() => isAuthenticated.value && userRole.value === 'USER')
 const isAdmin = computed(() => isAuthenticated.value && userRole.value === 'ADMIN')
 const modalVisible = ref(false);
 const modalMessage = ref("로그아웃 되었습니다.")
 
-const handleLogout = async ()=>{
+const handleLogout = async () => {
   try {
     await logoutUser()
   } catch (e) {
@@ -56,7 +69,7 @@ const handleLogout = async ()=>{
   auth.clearAuth();
 }
 
-const closeModal = async ()=>{
+const closeModal = async () => {
 
   modalVisible.value = false;
   await router.push('/')
@@ -85,6 +98,7 @@ const closeModal = async ()=>{
   flex-direction: column;
   position: relative;
 }
+
 .header .logo {
   height: 40px;
   width: auto;
@@ -118,7 +132,6 @@ const closeModal = async ()=>{
 
 .header .link {
   color: #333333;
-
   font-size: 16px;
   font-weight: 400;
   letter-spacing: 0;
@@ -138,8 +151,8 @@ const closeModal = async ()=>{
 }
 
 .button {
-  text-decoration: underline;  /* 밑줄 */
-  cursor: pointer;             /* 마우스를 올리면 포인터로 변경 */
-  color: #333333;              /* 선택적으로 링크 스타일 색상 */
+  text-decoration: underline; /* 밑줄 */
+  cursor: pointer; /* 마우스를 올리면 포인터로 변경 */
+  color: #333333; /* 선택적으로 링크 스타일 색상 */
 }
 </style>
