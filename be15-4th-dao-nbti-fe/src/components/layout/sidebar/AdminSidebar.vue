@@ -19,25 +19,25 @@ const isActive = (menuPath) => {
   <aside class="sidebar">
     <h3>서비스 관리</h3>
 
-    <RouterLink to="/admin/manage-user">회원 관리</RouterLink>
+    <RouterLink to="/admin/user">회원 관리</RouterLink>
 
     <ul v-if="!isProblemOrObjectionActive">
       <li>
         <RouterLink
-            to="/admin/manage-user"
-            :class="{ active: isActive('/admin/manage-user') }"
+            to="/admin/user"
+            :class="{ active: isActive('/admin/user') }"
         >회원</RouterLink>
       </li>
       <li>
         <RouterLink
-            to="/admin/manage-user-test"
-            :class="{ active: isActive('/admin/manage-user-test') }"
+            to="/admin/test"
+            :class="{ active: isActive('/admin/test') }"
         >검사 결과</RouterLink>
       </li>
       <li>
         <RouterLink
-            to="/admin/manage-user-study"
-            :class="{ active: isActive('/admin/manage-user-study') }"
+            to="/admin/study"
+            :class="{ active: isActive('/admin/study') }"
         >학습 결과</RouterLink>
       </li>
     </ul>
