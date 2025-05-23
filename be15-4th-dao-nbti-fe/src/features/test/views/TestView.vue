@@ -86,6 +86,8 @@ function goToNextProblem() {
         userAnswer.value = ''; // 만약 정답을 적지 않는다면 빈 값이 넘어감
         startTimer(); // 타이머 시작하기
     } else {
+        // 마지막 문제라면 자동 제출하게 설정
+        submitAllAnswers();
         console.log('검사 종료!')
     }
 }
@@ -126,10 +128,11 @@ async function submitAllAnswers() {
 
         const res = await submitAnswers(payload);
         console.log('제출 성공:', res.data);
-        // testResultId.value = res.data.data;
+        testResultId.value = res.data.data;
+        console.log('테스트 결과 Id는?',testResultId.value);
 
         /* 결과 페이지로 이동 하기 */
-        // await router.push({ name: 'TestResult'});
+        await router.push({ name: 'NowTestResult', params: { testResultId: testResultId.value }});
     } catch (err) {
         console.error('답안 제출 실패:', err);
     }
@@ -157,14 +160,16 @@ onMounted(fetchProblems);
                 <img :src="problems[currentProblemIndex].contentImageUrl" alt="문제 이미지" class="problem-img"/>
             </div>
 
-            <div class="overlay-box">
-                <div class="overlay-row">
-                    <label class="answer-label">정답 :</label>
-                    <input type="text" v-model="userAnswer" class="overlay-input" />
-                    <button class="btn" @click="goToNextProblem" v-if="currentProblemIndex < totalProblems - 1">다음</button>
-                    <button class="btn" @click="submitAllAnswers" v-else>끝내기</button>
-                </div>
+            <div class="answer-input">
+                정답 :
+                <input type="text" v-model="userAnswer"/>
             </div>
+
+            <div class="button-group">
+                <button class="btn" @click="goToNextProblem" v-if="currentProblemIndex < totalProblems - 1">다음</button>
+                <button class="btn" @click="submitAllAnswers" v-else>끝내기</button>
+            </div>
+
         </div>
     </div>
 </template>
@@ -202,52 +207,49 @@ onMounted(fetchProblems);
     display: flex;
     justify-content: center;
     margin-bottom: 2rem;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    object-fit: contain;
+    cursor: pointer;
 }
 
 .problem-img {
-    width: 900px;
-}
-
-.overlay-box {
-    position: absolute;
-    bottom: 30%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0.8rem 1rem;
+    width: 100%;
+    max-width: 720px;
+    height: auto;
     border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 10;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    object-fit: contain;
+    cursor: pointer;
 }
 
-.overlay-row {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
+.answer-input {
+    margin-top: 1.5rem;
 }
 
-.answer-label {
-    font-weight: 600;
-    color: #333;
-}
-
-.overlay-input {
-    padding: 0.4rem 0.6rem;
+.answer-input input {
+    padding: 0.5rem 1rem;
     font-size: 1rem;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #ccc;
-    width: 60px;
+    width: 100px;
     text-align: center;
+}
+
+.button-group {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
 }
 
 .btn {
     background: #3b82f6;
     color: #fff;
     border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.2s ease;
