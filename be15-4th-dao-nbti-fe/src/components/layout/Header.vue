@@ -91,6 +91,10 @@ const closeModal = async () => {
   position: relative;
 }
 
+a{
+  text-decoration: none;
+}
+
 .header .container {
   align-items: flex-start;
   display: inline-flex;
