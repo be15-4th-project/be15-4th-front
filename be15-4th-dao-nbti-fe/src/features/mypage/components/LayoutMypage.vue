@@ -18,7 +18,7 @@ import Sidebar from '@/features/mypage/components/Sidebar.vue'
 <style scoped>
 .layout {
   display: flex;
-  min-height: 100vh;
+  min-height: 100%;
   background-color: var(--bg-light, #f8f9fa);
 }
 
