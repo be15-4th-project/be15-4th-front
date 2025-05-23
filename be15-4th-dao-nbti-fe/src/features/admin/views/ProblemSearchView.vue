@@ -70,7 +70,7 @@ const onCreate = () => {
 
 // 문제 상세 페이지 이동
 const goToDetail = (problemId) => {
-  router.push({ name: 'problem-details', params: { problemId } })
+  router.push({name: 'problem-details', params: {problemId}})
 }
 
 // 페이지 변경 처리
@@ -86,7 +86,7 @@ const paginationRange = computed(() => {
 
   // 10페이지 이하이면 전부 보여줌
   if (total <= 10) {
-    return Array.from({ length: total }, (_, i) => i + 1);
+    return Array.from({length: total}, (_, i) => i + 1);
   }
 
   // 항상 보여줄 페이지
@@ -128,13 +128,19 @@ const paginationRange = computed(() => {
           <label for="filter-parent-category">상위 분야</label>
           <select id="filter-parent-category" v-model="filter.parentCategory">
             <option value="">전체</option>
-            <option v-for="item in parentCategories" :key="item.categoryId" :value="item.categoryId">{{ item.name }}</option>
+            <option v-for="item in parentCategories" :key="item.categoryId" :value="item.categoryId">{{
+                item.name
+              }}
+            </option>
           </select>
 
           <label for="filter-category">하위 분야</label>
           <select id="filter-category" v-model="filter.category">
             <option value="">전체</option>
-            <option v-for="item in filteredCategories" :key="item.categoryId" :value="item.categoryId">{{ item.name }}</option>
+            <option v-for="item in filteredCategories" :key="item.categoryId" :value="item.categoryId">{{
+                item.name
+              }}
+            </option>
           </select>
 
           <label for="filter-level">난이도</label>
@@ -148,7 +154,6 @@ const paginationRange = computed(() => {
           <button class="btn" @click="onSearch">검색</button>
           <button class="btn" @click="onCreate">신규 문제 등록</button>
         </div>
-      </div>
 
         <table class="table">
           <thead>
@@ -169,7 +174,9 @@ const paginationRange = computed(() => {
             <td>{{ problem.childCategoryName }}</td>
             <td>레벨 {{ problem.level }}</td>
             <td>{{ problem.answerTypeDescription }}</td>
-            <td><button class="btn" @click="goToDetail(problem.problemId)">상세보기</button></td>
+            <td>
+              <button class="btn" @click="goToDetail(problem.problemId)">상세보기</button>
+            </td>
           </tr>
 
           <!-- 데이터가 없을 때 -->
@@ -180,44 +187,91 @@ const paginationRange = computed(() => {
         </table>
 
         <!-- 페이지네이션 -->
-      <div class="pagination">
-        <button @click="changePage(filter.page - 1)" :disabled="filter.page <= 1">&laquo;</button>
+        <div class="pagination">
+          <button @click="changePage(filter.page - 1)" :disabled="filter.page <= 1">&laquo;</button>
 
-        <button
-            v-for="pageNum in paginationRange"
-            :key="pageNum"
-            @click="typeof pageNum === 'number' && changePage(pageNum)"
-            :class="{ active: filter.page === pageNum }"
-            :disabled="pageNum === '...'"
-        >
-          {{ pageNum }}
-        </button>
+          <button
+              v-for="pageNum in paginationRange"
+              :key="pageNum"
+              @click="typeof pageNum === 'number' && changePage(pageNum)"
+              :class="{ active: filter.page === pageNum }"
+              :disabled="pageNum === '...'"
+          >
+            {{ pageNum }}
+          </button>
 
-        <button @click="changePage(filter.page + 1)" :disabled="filter.page >= totalPages">&raquo;</button>
+          <button @click="changePage(filter.page + 1)" :disabled="filter.page >= totalPages">&raquo;</button>
+        </div>
       </div>
     </section>
   </main>
 </template>
 
 <style scoped>
-.card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-.filter-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-.filter-bar select, .filter-bar input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 8px; }
-.filter-bar button { padding: 0.5rem 1rem; border: none; background: #007bff; color: #fff; border-radius: 8px; cursor: pointer; }
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
 
-.btn { padding: 0.5rem 1rem; border: none; background: #007bff; color: #fff; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
 
-.table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-.table th, .table td { border: 1px solid #ddd; padding: 0.75rem; text-align: center; }
+.filter-bar select, .filter-bar input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.filter-bar button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.table th, .table td {
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+  text-align: center;
+}
 
 .form-group {
-  display: flex;           /* row가 기본 방향 */
-  align-items: flex-start;     /* 세로 중앙 정렬 */
-  gap: 0.75rem;            /* 요소 간 간격 */
+  display: flex; /* row가 기본 방향 */
+  align-items: flex-start; /* 세로 중앙 정렬 */
+  gap: 0.75rem; /* 요소 간 간격 */
   margin-bottom: 1.5rem;
 }
 
-.form-group label { margin-top: 0.5rem; font-weight: 500; }
+.form-group label {
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
 .form-group input[type="text"],
 .form-group select, .form-group input[type="file"] {
   padding: 0.5rem;
@@ -225,7 +279,25 @@ const paginationRange = computed(() => {
   border-radius: 8px;
 }
 
-.pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1rem; }
-.pagination button { padding: 0.4rem 0.8rem; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; }
-.pagination button.active { background: #007bff; color: #fff; border-color: #007bff; }
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pagination button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
 </style>
