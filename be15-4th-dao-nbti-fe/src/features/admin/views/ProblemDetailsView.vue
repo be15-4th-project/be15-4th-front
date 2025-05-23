@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed, onMounted, watch} from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import api from "@/api/axios.js";
 import { useRouter, useRoute } from "vue-router";
 import SmallModal from "@/components/common/SmallModal.vue";
@@ -11,8 +11,10 @@ const isEditMode = ref(false)
 const parentCategories = ref([]);
 const categories = ref([]);
 const problem = ref({})
-const showDeleteModal = ref(false)  // 삭제 모달 상태 추가
+const showDeleteModal = ref(false)
 const showCancelEditModal = ref(false)
+
+const selectedFile = ref(null)  // 새로 선택된 이미지 파일 보관용
 
 const fetchCategories = async () => {
   const response = await api.get('/admin/categories')
@@ -38,14 +40,14 @@ const fetchProblem = async () => {
   const data = res.data.data.problem
   problem.value = {
     ...data,
-    parentCategory: findParentCategoryId(data.categoryId) // 매핑!
+    parentCategory: findParentCategoryId(data.categoryId)
   }
+  selectedFile.value = null;  // 초기화
 }
 
 onMounted(async () => {
   await fetchCategories();
   await fetchProblem();
-
 });
 
 watch(
@@ -55,33 +57,28 @@ watch(
         problem.value.categoryId = '';
       }
     },
-    // 첫 로딩에서 빈 문자열 매핑하지 않게
     { immediate: false }
 );
-
 
 function startEdit() {
   isEditMode.value = true
 }
 
-// 삭제 버튼 눌렀을 때 모달 열기
 function onDeleteClick() {
   showDeleteModal.value = true
 }
 
-// 모달 확인 눌렀을 때 실제 삭제 처리
 const onConfirmDelete = async () => {
   showDeleteModal.value = false
   try {
     await api.delete(`/admin/problems/${problem.value.problemId}`)
     alert('삭제가 완료되었습니다.')
-    router.replace('/admin/problems')  // 목록 페이지 등으로 이동
+    router.replace('/admin/problems')
   } catch (error) {
     alert('삭제 중 오류가 발생했습니다.')
   }
 }
 
-// 모달 취소 눌렀을 때 닫기
 const onCancelDelete = () => {
   showDeleteModal.value = false
 }
@@ -92,32 +89,85 @@ const goToList = () => {
 
 const cancelEdit = () => {
   showCancelEditModal.value = true;
-  isEditMode.value = false;
-  fetchProblem(); // 결과 다시 받아오기 (현재 상태로)
 }
 
 const onCancelEdit = () => {
   showCancelEditModal.value = false
+  isEditMode.value = false;
+  fetchProblem();
 }
 
+// 수정 완료 (multipart/form-data 로 전송)
 const completeEdit = async () => {
-  const request = {
-    categoryId: problem.value.categoryId,
-    level: problem.value.level,
-    answerTypeId: problem.value.answerTypeId,
-    correctAnswer: problem.value.correctAnswer,
-    contentImageUrl: problem.value.contentImageUrl
-  };
+  if (!validateRequest()) return;
 
   try {
-    await api.put(`/admin/problems/${problem.value.problemId}`, request);
+    const formData = new FormData();
+
+    // JSON 부분 Blob으로 추가
+    const problemUpdateRequest = {
+      categoryId: problem.value.categoryId,
+      level: problem.value.level,
+      answerTypeId: problem.value.answerTypeId,
+      correctAnswer: problem.value.correctAnswer,
+      contentImageUrl: problem.value.contentImageUrl // 기존 URL 유지
+    };
+    const jsonBlob = new Blob([JSON.stringify(problemUpdateRequest)], { type: "application/json" });
+    formData.append("problemUpdateRequest", jsonBlob);
+
+    // 새로 선택한 이미지가 있으면 첨부
+    if (selectedFile.value) {
+      formData.append("imageFile", selectedFile.value);
+    }
+
+    await api.put(`/admin/problems/${problem.value.problemId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
     alert('수정이 완료되었습니다.');
-    isEditMode.value = false;  // 수정 모드 종료
-    await fetchProblem();      // 수정 후 최신 데이터 다시 불러오기
+    isEditMode.value = false;
+    selectedFile.value = null;
+    await fetchProblem();
   } catch (e) {
-    console.log('수정 실패');
+    alert('수정 실패했습니다.');
+    console.error(e);
   }
 }
+
+const validateRequest = () => {
+  if (!problem.value.categoryId) {
+    alert('분야를 선택하세요.');
+    return false;
+  }
+  if (!problem.value.level) {
+    alert('난이도를 선택하세요.');
+    return false;
+  }
+  if (!problem.value.answerTypeId) {
+    alert('답안 유형을 선택하세요.');
+    return false;
+  }
+  if (!problem.value.correctAnswer) {
+    alert('정답을 입력하세요.');
+    return false;
+  }
+  if (!problem.value.contentImageUrl) {
+    alert('본문 사진을 등록하세요.');
+    return false;
+  }
+  return true;
+};
+
+// 이미지 선택 시 새 파일 저장 및 미리보기 처리
+const uploadImage = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  selectedFile.value = file;
+  problem.value.contentImageUrl = URL.createObjectURL(file); // 미리보기용 임시 URL
+};
 </script>
 
 <template>
@@ -131,13 +181,12 @@ const completeEdit = async () => {
       </template>
 
       <div class="card">
-        <!-- 상단 버튼 -->
         <div class="flex">
           <div class="top-btn-group">
             <template v-if="!isEditMode">
-            <button class="btn" @click="startEdit">수정하기</button>
-            <button class="btn" @click="onDeleteClick">삭제</button>
-            <button class="btn" @click="goToList">목록으로</button>
+              <button class="btn" @click="startEdit">수정하기</button>
+              <button class="btn" @click="onDeleteClick">삭제</button>
+              <button class="btn" @click="goToList">목록으로</button>
             </template>
             <template v-else>
               <button class="btn" @click="completeEdit">수정 완료</button>
@@ -147,32 +196,29 @@ const completeEdit = async () => {
           </div>
         </div>
 
-        <!-- 폼 -->
         <form>
           <div class="form-group" style="margin-bottom:1.5rem;">
             <label for="problem-id">문제 번호</label>
-            <input type="text" id="problem-id" :value="problem.problemId" readonly :class="{ 'readonly-look': !isEditMode }">
+            <input type="text" id="problem-id" :value="problem.problemId" readonly :class="{ 'readonly-look': !isEditMode }" />
           </div>
 
-          <!-- 상위/하위 분야를 가로 배치 -->
           <div class="form-row">
             <div class="form-group">
               <label for="category-parent">상위 분야</label>
               <select id="category-parent" :disabled="!isEditMode" v-model="problem.parentCategory" :class="{ 'readonly-look': !isEditMode }">
-                <option key="" value ="">선택</option>
+                <option value="">선택</option>
                 <option v-for="parent in parentCategories" :key="parent.categoryId" :value="parent.categoryId">{{ parent.name }}</option>
               </select>
             </div>
             <div class="form-group">
               <label for="category-child">하위 분야</label>
               <select id="category-child" :disabled="!isEditMode" v-model="problem.categoryId" :class="{ 'readonly-look': !isEditMode }">
-                <option key="" value ="">선택</option>
+                <option value="">선택</option>
                 <option v-for="child in filteredCategories" :key="child.categoryId" :value="child.categoryId">{{ child.name }}</option>
               </select>
             </div>
           </div>
 
-          <!-- 난이도/답안 유형 가로 배치 -->
           <div class="form-row">
             <div class="form-group">
               <label for="difficulty">난이도</label>
@@ -194,19 +240,25 @@ const completeEdit = async () => {
             </div>
           </div>
 
-          <!-- 본문 이미지 업로드 -->
           <div class="form-group" style="margin-bottom:1.5rem;">
             <label for="image-upload">본문 이미지</label>
-            <input type="file" id="image-upload" accept="image/*" :disabled="!isEditMode" :class="{ 'readonly-look': !isEditMode }">
+            <input
+                type="file"
+                id="image-upload"
+                accept="image/*"
+                :disabled="!isEditMode"
+                :class="{ 'readonly-look': !isEditMode }"
+                @change="uploadImage"
+            />
           </div>
 
           <div class="preview-box">
-            <img :src="problem.contentImageUrl" alt="이미지 없음"/>
+            <img :src="problem.contentImageUrl" alt="이미지 없음" />
           </div>
 
           <div class="form-group">
             <label for="correct-answer">정답</label>
-            <input type="text" id="correct-answer" v-model="problem.correctAnswer" :readonly="!isEditMode" :class="{ 'readonly-look': !isEditMode }">
+            <input type="text" id="correct-answer" v-model="problem.correctAnswer" :readonly="!isEditMode" :class="{ 'readonly-look': !isEditMode }" />
           </div>
         </form>
       </div>
@@ -219,18 +271,21 @@ const completeEdit = async () => {
         cancelText="아니오"
         @confirm="onConfirmDelete"
         @cancel="onCancelDelete"
+        title="삭제 확인"
     >
       <p>정말 삭제하시겠습니까?</p>
     </SmallModal>
-
     <SmallModal
         :visible="showCancelEditModal"
-        :confirmVisible="false"
-        @cancel="onCancelEdit"
+        :confirmVisible="true"
+        confirmText="예"
+        cancelText="아니오"
+        @confirm="onCancelEdit"
+        @cancel="() => (showCancelEditModal = false)"
+        title="수정 취소 확인"
     >
-      <p>문제 수정이 취소되었습니다.</p>
+      <p>수정을 취소하시겠습니까? 입력한 내용이 저장되지 않습니다.</p>
     </SmallModal>
-
   </main>
 </template>
 
@@ -302,11 +357,27 @@ const completeEdit = async () => {
   margin-bottom: 1rem;
 }
 
-/* readonly지만 disabled처럼 스타일 부여 */
 .readonly-look {
-  background-color: #f5f5f5;  /* 회색 배경 */
-  color: #777;                /* 텍스트 색상 */
-  cursor: not-allowed;        /* 마우스 커서 */
-  pointer-events: none;       /* 클릭 막기 */
+  background-color: #f5f5f5;
+  color: #777;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.preview-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.readonly-look {
+  background-color: #eee;
+  cursor: default;
+}
+.preview-box img {
+  max-width: 100%;
+  max-height: 300px;
+  display: block;
+  margin-top: 1rem;
 }
 </style>

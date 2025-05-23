@@ -1,61 +1,74 @@
 <script setup>
 import {ref, onMounted, watchEffect, computed} from 'vue'
-import {getProblems} from "@/features/test/api.js";
-import {useAuthStore} from "@/stores/auth.js";
+import {getProblems, submitAnswers} from "@/features/test/api.js";
+import {useRouter} from "vue-router";
+import {useToast} from "vue-toastification";
 
-const authStore = useAuthStore()
+/* 포인트가 없는 경우 접근을 제한하기 위한 부분 */
+const router = useRouter();
+const toast = useToast();
 
-// 문제 담기
-const problems = ref([]);
-// 현재 문제 index
-const currentProblemIndex = ref(0);
-// 전체 문제 수
-const totalProblems = computed(() => problems.value.length);
+/* 문제와 관련된 const */
+const problems = ref([]); // 문제를 담는 배열
+const currentProblemIndex = ref(0); // 현재 문제 index
+const totalProblems = computed(() => problems.value.length); // 전체 문제 수
+const testResultId = ref(0);
+const isLoading = ref(false);
 
-// 문제 진행률을 표시하기 위한 것
+/* 문제 진행률 const */
 const percentage = ref(0);
+
+/* 제한 시간 관련 const */
 const time = ref(0);
 const timerDisplay = ref('0');
 let interval;
 
-const userAnswer = ref('');
-const guestId = ref(null);
+/* 문제 채점을 위해 넘겨줘야 하는 값들*/
+const answers = ref([]); // 문제 전체 정답을 저장하는 배열
+const userAnswer = ref(''); // 문제 하나의 정답
+const guestId = ref(null); // 비회원을 위한 key
 
-// 문제를 가져오는 api
+/* 문제를 가져오는 api*/
 async function fetchProblems() {
     try {
         const res = await getProblems();
 
-        problems.value = res.data.data.problemList;
-        guestId.value = res.data.data.guestId;
+        problems.value = res.data.data.problemList; // 문제 리스트 가져오기
+        guestId.value = res.data.data.guestId; // guestId 가져오기
 
         console.log(problems.value);
         console.log(guestId.value);
 
         currentProblemIndex.value = 0;
 
-        startTimer();
+        startTimer(); // 타이머 시작
     } catch (e) {
+        const errorCode = e.response?.data?.errorCode
+
+        // 포인트가 없는데 test로 경로를 입력해서 접근하려는 경우 접근 제한하기
+        if (errorCode === '30004') {
+            toast.error('포인트가 부족해 검사를 실행할 수 없습니다!')
+            await router.replace('/')
+            return
+        }
         console.error('문제 불러오기 실패:', e)
     }
 }
 
-// 문제를 채점하는 api
-
-// 타이머 시작하기
+/* 시간 제한을 위한 함수 */
 function startTimer() {
     if (interval) clearInterval(interval)
 
     const current = problems.value[currentProblemIndex.value]
-    time.value = current?.timeLimit ?? 60
-    timerDisplay.value = time.value.toString()
+    time.value = current?.timeLimit ?? 60 // 실제 시간
+    timerDisplay.value = time.value.toString(); // 화면에서 보여지는 부분을 설정하기 위함
 
     interval = setInterval(() => {
         if (time.value <= 0) {
             clearInterval(interval)
             timerDisplay.value = '0'
 
-            goToNextProblem()
+            goToNextProblem(); // 시간이 끝나면 다음 문제로 바로 넘어가기
         } else {
             time.value--
             timerDisplay.value = time.value.toString()
@@ -63,17 +76,21 @@ function startTimer() {
     }, 1000)
 }
 
-// 다음 문제로 넘어가기
+/* 다음 문제로 넘어가는 함수 */
 function goToNextProblem() {
+    // 다음 문제로 넘어가기 전에 현재 시점의 정답을 저장함
+    saveCurrentAnswer();
+
     if (currentProblemIndex.value < totalProblems.value - 1) {
         currentProblemIndex.value++
-        userAnswer.value = ''
-        startTimer()
+        userAnswer.value = ''; // 만약 정답을 적지 않는다면 빈 값이 넘어감
+        startTimer(); // 타이머 시작하기
     } else {
         console.log('검사 종료!')
     }
 }
 
+/* 변경을 감지하기 위한 watchEffect*/
 watchEffect(() => {
     percentage.value =
         totalProblems.value > 0
@@ -81,28 +98,73 @@ watchEffect(() => {
             : 0
 })
 
+/* 현재 문제의 답을 저장하는 함수 */
+function saveCurrentAnswer() {
+    const currentProblem = problems.value[currentProblemIndex.value]; // 현재 문제의 id를 가져오기 위해 선언
+    answers.value.push({
+        problemId: currentProblem.problemId, // 현재 문제의 아이디
+        answer: userAnswer.value // 현재 문제의 정답
+    })
+}
+
+/* 문제를 채점하는 api */
+async function submitAllAnswers() {
+
+    saveCurrentAnswer();
+
+    if (interval) clearInterval(interval);
+
+    isLoading.value = true
+
+    try {
+        const payload = {
+            guestId: guestId.value,
+            answers: answers.value
+        }
+
+        console.log(payload);
+
+        const res = await submitAnswers(payload);
+        console.log('제출 성공:', res.data);
+        // testResultId.value = res.data.data;
+
+        /* 결과 페이지로 이동 하기 */
+        // await router.push({ name: 'TestResult'});
+    } catch (err) {
+        console.error('답안 제출 실패:', err);
+    }
+}
+
+/* mount 되는 시점에 문제를 가져오기 */
 onMounted(fetchProblems);
 </script>
 
 <template>
-    <div class="timer">{{ timerDisplay }}</div>
-
-    <div class="container" v-if="problems.length > 0">
-        <div class="progress-container">
-            <div class="progress-bar" :style="{ width: percentage + '%' }"></div>
+    <div class="container-wrapper">
+        <div v-if="isLoading" class="loading-overlay">
+            <div class="spinner" />
+            <p>결과를 불러오는 중입니다...</p>
         </div>
 
-        <div class="image-area">
-            <img :src="problems[currentProblemIndex].contentImageUrl" alt="문제 이미지" width="300" />
-        </div>
+        <div class="timer" v-else>{{ timerDisplay }}</div>
 
-        <div class="answer-input">
-            정답 :
-            <input type="text" v-model="userAnswer" />
-        </div>
+        <div class="container" v-if="!isLoading && problems.length > 0">
+            <div class="progress-container">
+                <div class="progress-bar" :style="{ width: percentage + '%' }"></div>
+            </div>
 
-        <div class="button-group">
-            <button class="btn" @click="goToNextProblem">다음</button>
+            <div class="image-area">
+                <img :src="problems[currentProblemIndex].contentImageUrl" alt="문제 이미지" class="problem-img"/>
+            </div>
+
+            <div class="overlay-box">
+                <div class="overlay-row">
+                    <label class="answer-label">정답 :</label>
+                    <input type="text" v-model="userAnswer" class="overlay-input" />
+                    <button class="btn" @click="goToNextProblem" v-if="currentProblemIndex < totalProblems - 1">다음</button>
+                    <button class="btn" @click="submitAllAnswers" v-else>끝내기</button>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -110,6 +172,7 @@ onMounted(fetchProblems);
 <style scoped>
 .container {
     max-width: 900px;
+    max-height: 800px;
     margin: 3rem auto;
     background: #fff;
     border-radius: 16px;
@@ -134,44 +197,57 @@ onMounted(fetchProblems);
     transition: width 0.3s ease;
 }
 
-.question-subtitle {
-    font-size: 1rem;
-    color: #666;
-    margin-bottom: 2.5rem;
-}
-
 .image-area {
+    position: relative;
     display: flex;
     justify-content: center;
     margin-bottom: 2rem;
 }
 
-.answer-input {
-    margin-top: 1.5rem;
+.problem-img {
+    width: 900px;
 }
 
-.answer-input input {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    width: 100px;
-    text-align: center;
-}
-
-.button-group {
-    margin-top: 2rem;
+.overlay-box {
+    position: absolute;
+    bottom: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
     display: flex;
-    gap: 1.5rem;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+}
+
+.overlay-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.answer-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.overlay-input {
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 60px;
+    text-align: center;
 }
 
 .btn {
     background: #3b82f6;
     color: #fff;
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 12px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.2s ease;
@@ -194,5 +270,34 @@ onMounted(fetchProblems);
     justify-content: center;
     font-weight: bold;
     z-index: 10;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #3b82f6;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 </style>

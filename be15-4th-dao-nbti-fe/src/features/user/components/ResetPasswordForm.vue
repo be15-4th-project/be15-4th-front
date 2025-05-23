@@ -4,16 +4,16 @@ import UserInput from "@/features/user/components/UserInput.vue";
 import {computed, reactive} from "vue";
 import BlueButton from "@/features/user/components/BlueButton.vue";
 
-const emit = defineEmits(['login','update:loginId', 'update:password'])
+const emit = defineEmits(['login','update:password', 'update:verifiedPassword'])
 
 const props = defineProps({
-  loginId: String,
+  verifiedPassword: String,
   password: String
 })
 
-const loginIdModel = computed({
-  get: () => props.loginId,
-  set: val => emit('update:loginId', val)
+const verifiedPasswordModel = computed({
+  get: () => props.verifiedPassword,
+  set: val => emit('update:verifiedPassword', val)
 })
 
 const passwordModel = computed({
@@ -36,21 +36,22 @@ function login(){
     </div>
     <div class="form">
       <UserInput
-          v-model="loginIdModel"
-          label="로그인 ID"
-          placeholder="로그인 ID를 입력해주세요"/>
-      <UserInput
           v-model="passwordModel"
           label="비밀번호"
           placeholder="비밀번호를 입력해주세요"
           type="password"
       />
+      <UserInput
+        v-model="verifiedPasswordModel"
+        label="비밀번호 확인"
+        placeholder="비밀번호를 다시 입력해주세요"
+        type="password"
+    />
 
       <BlueButton
-          text="로그인"
+          text="비밀번호 재설정"
           @click="login"/>
     </div>
-    <RouterLink to="/find-password">비밀번호 찾기</RouterLink>
   </div>
 </template>
 

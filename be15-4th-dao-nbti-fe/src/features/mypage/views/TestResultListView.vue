@@ -34,6 +34,16 @@ const detailDate  = ref('')
 const lineLabels = ref([])
 const lineScores = ref([])
 
+// 카테고리별 아이콘 맵
+const categoryIcons = {
+  '언어 이해':   new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
+  '시사 상식':   new URL('@/assets/images/common_sense.png', import.meta.url).href,
+  '지각 추론':   new URL('@/assets/images/perceptual_reasoning.png', import.meta.url).href,
+  '공간 지각력': new URL('@/assets/images/spatial_perception.png', import.meta.url).href,
+  '작업 기억':   new URL('@/assets/images/work_memory.png', import.meta.url).href,
+  '처리 속도':   new URL('@/assets/images/processing_speed.png', import.meta.url).href
+}
+
 /**
  * 최신 검사 결과 1건 로드 (필터 무시)
  */
@@ -148,6 +158,27 @@ onMounted(async () => {
           <RadarChart :labels="radarLabels" :data="radarScores" />
           <LineChart  :labels="lineLabels"  :data="lineScores"  />
         </div>
+        <!-- 점수 그리드 -->
+        <div class="grid">
+          <div v-for="(label, index) in radarLabels" :key="label" class="grid-item">
+            <img
+                :src="categoryIcons[label]"
+                alt=""
+                class="category-icon"
+            />
+            <div class="score-content">
+              <div class="score-header">
+                <div class="category-title">{{ label }}</div>
+                <div class="score-num">{{ radarScores[index] }}점</div>
+              </div>
+              <div class="score-bar">
+                <div class="bar" :style="{ width: (radarScores[index] / 6 * 100) + '%' }"></div>
+              </div>
+              <div class="category-content">{{ label }} 설명 내용</div>
+            </div>
+          </div>
+        </div>
+
         <div class="ai-summary-card">
           <p><strong>AI 분석 결과 ({{ detailDate.slice(0,10) }}):</strong></p>
           <p>{{ aiText }}</p>
@@ -223,6 +254,67 @@ onMounted(async () => {
   gap: 2rem;
   margin-bottom: 2.5rem;
   justify-content: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 1.8rem;
+  margin-bottom: 2rem;
+}
+.grid-item {
+  background: #f9fafb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.score-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.score-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.category-title {
+  font-weight: 600;
+  color: #1e3a8a;
+}
+.score-num {
+  color: #3b82f6;
+  font-weight: 500;
+}
+.score-bar {
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+.score-bar .bar {
+  height: 100%;
+  background: linear-gradient(to right, #3b82f6, #93c5fd);
+}
+.category-content {
+  font-size: 0.92rem;
+  color: #555;
+}
+.category-title {
+  display: flex;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #1e3a8a;
+  gap: 0.4rem;
+}
+.category-icon {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
 }
 .ai-summary-card {
   background: #f0f4ff;

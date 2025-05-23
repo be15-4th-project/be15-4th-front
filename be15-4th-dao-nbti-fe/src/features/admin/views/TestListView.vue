@@ -1,56 +1,54 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchUserList } from "@/features/admin/api.js"
+import {fetchTestResultList} from "@/features/admin/api.js"
 import PagingBar from "@/features/admin/components/PagingBar.vue";
 
-const users = ref([])
+const testResults = ref([])
 const totalItems = ref(0)
 const totalPages = ref(0)
 const filter = ref({
   accountId: '',
-  isDeleted: null,
+  year: null,
+  month:null,
   page: 1,
   size: 10,
 })
 
-
-
-
-const fetchUsers = async () => {
+const loadTestResult = async () => {
   try {
     const queryParams = new URLSearchParams()
 
     if (filter.value.accountId) queryParams.append('accountId', filter.value.accountId)
-    if (filter.value.isDeleted !== null) queryParams.append('isDeleted', filter.value.isDeleted)
+    if (filter.value.year !== null) queryParams.append('year', filter.value.year)
+    if (filter.value.month !== null) queryParams.append('month', filter.value.month)
     if (filter.value.page !== undefined) queryParams.append('page', filter.value.page-1)
     if (filter.value.size !== undefined) queryParams.append('size', filter.value.size)
     console.log(queryParams.toString())
-    const response = await fetchUserList(queryParams.toString())
+    const response = await fetchTestResultList(queryParams.toString())
     const data = response.data.data
     console.log(data)
-    users.value = data.page.content
-    totalPages.value = data.page.totalPages
-    //filter.value.size = data.page.numberOfElements
-    totalItems.value = data.page.totalElements
-    filter.value.page = data.page.number // Spring의 page는 0-based
+    testResults.value = data.content
+    totalPages.value = data.pagination.totalPage
+    totalItems.value = data.pagination.totalItems
+    filter.value.page = data.pagination.currentPage // Spring의 page는 0-based
   } catch (e) {
     console.error(e)
   }
 }
 
 onMounted(async () => {
-  await fetchUsers()
+  await loadTestResult()
 })
 
 const onSearch = () => {
   filter.value.page = 1
-  fetchUsers()
+  loadTestResult()
 }
 
 const changePage = (page) => {
   filter.value.page = page
-  fetchUsers()
+  loadTestResult()
 }
 </script>
 
@@ -73,51 +71,64 @@ const changePage = (page) => {
               placeholder="회원 ID 검색"
           />
 
-          <label for="filter-deleted">탈퇴 여부</label>
-          <select id="filter-deleted" v-model="filter.isDeleted">
+          <label for="filter-year">연도</label>
+          <input
+              id="filter-year"
+              type="number"
+              v-model="filter.year"
+              placeholder="예: 2025"
+              min="2000"
+              max="2100"
+          />
+
+          <label for="filter-month">월</label>
+          <select id="filter-month" v-model="filter.month">
             <option :value="null">전체</option>
-            <option :value="'N'">정상</option>
-            <option :value="'Y'">탈퇴</option>
+            <option v-for="m in 12" :key="m" :value="m">{{ m }}월</option>
           </select>
 
           <button class="btn" @click="onSearch">검색</button>
         </div>
+
 
         <!-- 사용자 목록 테이블 -->
         <table class="table">
           <thead>
           <tr>
             <th>회원 ID</th>
-            <th>이름</th>
-            <th>성별</th>
-            <th>생일</th>
-            <th>포인트</th>
-            <th>탈퇴 여부</th>
+            <th>생성일</th>
+            <th>높은 카테고리</th>
+            <th>낮은 카테고리</th>
+            <th>총점</th>
+            <th>상세보기</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="user in users" :key="user.accountId">
-            <td>{{ user.accountId }}</td>
-            <td>{{ user.name }}</td>
-            <td>{{ user.gender }}</td>
-            <td>{{ user.birthdate }}</td>
-            <td>{{ user.point ?? 0 }}</td>
-            <td>{{ user.isDeleted==="Y" ? '탈퇴' : '정상' }}</td>
+          <tr v-for="testResult in testResults" :key="testResult.testResultId">
+            <td>{{ testResult.accountId }}</td>
+            <td>{{ testResult.createdAt }}</td>
+            <td>{{ testResult.highestCategory }}</td>
+            <td>{{ testResult.lowestCategory }}</td>
+            <td>{{ testResult.totalScore }}</td>
+            <td><RouterLink :to="`/admin/test/${testResult.testResultId}`">
+              상세보기
+            </RouterLink></td>
+
           </tr>
 
-          <tr v-if="users.length === 0">
-            <td colspan="6" style="color: #999;">조회된 회원이 없습니다.</td>
+          <tr v-if="testResults.length === 0">
+            <td colspan="6" style="color: #999;">조회된 검사가 없습니다.</td>
           </tr>
           </tbody>
         </table>
 
         <PagingBar
-            :current-page="filter.page+1"
+            :current-page="filter.page"
             :total-pages="totalPages"
             :total-items="totalItems"
             @page-changed="changePage"
         />
-        </div>
+      </div>
     </section>
   </main>
 </template>

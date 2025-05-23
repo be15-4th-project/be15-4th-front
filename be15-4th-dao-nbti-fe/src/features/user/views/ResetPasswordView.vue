@@ -3,17 +3,16 @@ import {computed, reactive, ref} from "vue";
 import LoginForm from "@/features/user/components/LoginForm.vue";
 import {useAuthStore} from "@/stores/auth.js";
 import {useRouter} from "vue-router";
-import {loginUser} from "@/features/user/api.js";
+import {fetchResetPassword, loginUser} from "@/features/user/api.js";
 import SmallModal from "@/components/common/SmallModal.vue";
 import {storeToRefs} from "pinia";
+import ResetPasswordForm from "@/features/user/components/ResetPasswordForm.vue";
 
 const router = useRouter();
 const authStore = useAuthStore()
-const { isAuthenticated, userRole } = storeToRefs(authStore)
-const isUser = computed(() =>isAuthenticated.value && userRole.value === 'USER')
-const isAdmin = computed(() =>isAuthenticated.value && userRole.value === 'ADMIN')
+
 const form = reactive({
-  loginId: '',
+  verifiedPassword: '',
   password: ''
 })
 const modalVisible = ref(false)
@@ -21,11 +20,11 @@ const modalMessage = ref('')
 const loginSuccess = ref(false);
 
 
-const login = async () => {
-  console.log(`${form.loginId} ${form.password}`);
+const resetPassword = async () => {
+  console.log(form.verifiedPassword+" "+form.password);
   try {
-    const response = await loginUser({
-      accountId: form.loginId,
+    const response = await fetchResetPassword({
+      verifiedPassword: form.verifiedPassword,
       password: form.password
     });
 
@@ -33,14 +32,11 @@ const login = async () => {
       throw new Error(response.data.message);
     }
 
-    console.log('로그인 성공', response.data)
-    const accessToken = response.data.data.accessToken;
-    console.log(`토큰 ${accessToken}`)
-    authStore.setAuth(accessToken);
-    modalMessage.value = "로그인에 성공했습니다."
+    authStore.clearAuth();
+    modalMessage.value = "비밀번호 변경에 성공했습니다."
     loginSuccess.value=true
   }  catch (error) {
-    modalMessage.value = error.response?.data?.message;
+      modalMessage.value = '비밀번호 변경 실패'
 
   } finally {
     modalVisible.value = true;
@@ -50,11 +46,7 @@ const login = async () => {
 const closeModal = async() => {
   modalVisible.value=false;
   if(loginSuccess.value===true){
-    console.log('권한 : '+isUser.value)
-    if(isUser.value)
-      await router.push('/');
-    else if(isAdmin.value)
-      await router.push('/admin')
+    await router.push('/login')
   }
 }
 
@@ -62,10 +54,10 @@ const closeModal = async() => {
 
 <template>
   <div class = "find-view">
-    <LoginForm
-        v-model:loginId="form.loginId"
+    <ResetPasswordForm
+        v-model:verifiedPassword="form.verifiedPassword"
         v-model:password="form.password"
-        @login="login"
+        @login="resetPassword"
         />
 
   </div>

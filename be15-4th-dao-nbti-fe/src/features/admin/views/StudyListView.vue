@@ -1,56 +1,55 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchUserList } from "@/features/admin/api.js"
+import {fetchStudyResult, fetchTestResultList} from "@/features/admin/api.js"
 import PagingBar from "@/features/admin/components/PagingBar.vue";
 
-const users = ref([])
+const studyResult = ref([])
 const totalItems = ref(0)
 const totalPages = ref(0)
 const filter = ref({
-  accountId: '',
-  isDeleted: null,
+  userId: '',
+  parentCategoryId: null,
+  startDate:null,
+  endDate: null,
   page: 1,
-  size: 10,
+  size:10
 })
 
-
-
-
-const fetchUsers = async () => {
+const loadStudyResult = async () => {
+  const queryParams = new URLSearchParams()
   try {
-    const queryParams = new URLSearchParams()
-
-    if (filter.value.accountId) queryParams.append('accountId', filter.value.accountId)
-    if (filter.value.isDeleted !== null) queryParams.append('isDeleted', filter.value.isDeleted)
-    if (filter.value.page !== undefined) queryParams.append('page', filter.value.page-1)
+    if (filter.value.userId) queryParams.append('accountId', filter.value.userId)
+    if (filter.value.parentCategoryId !== null) queryParams.append('parentCategoryId', filter.value.parentCategoryId)
+    if (filter.value.startDate !== null) queryParams.append('startDate', filter.value.startDate)
+    if (filter.value.endDate !== null) queryParams.append('endDate', filter.value.endDate)
+    if (filter.value.page !== undefined) queryParams.append('page', filter.value.page)
     if (filter.value.size !== undefined) queryParams.append('size', filter.value.size)
     console.log(queryParams.toString())
-    const response = await fetchUserList(queryParams.toString())
+    const response = await fetchStudyResult(queryParams.toString())
     const data = response.data.data
     console.log(data)
-    users.value = data.page.content
-    totalPages.value = data.page.totalPages
-    //filter.value.size = data.page.numberOfElements
-    totalItems.value = data.page.totalElements
-    filter.value.page = data.page.number // Spring의 page는 0-based
+    studyResult.value = data.studies
+    totalPages.value = data.pagination.totalPage
+    totalItems.value = data.pagination.totalItems
+    filter.value.page = data.pagination.currentPage // Spring의 page는 0-based
   } catch (e) {
     console.error(e)
   }
 }
 
 onMounted(async () => {
-  await fetchUsers()
+  await loadStudyResult()
 })
 
 const onSearch = () => {
   filter.value.page = 1
-  fetchUsers()
+  loadStudyResult()
 }
 
 const changePage = (page) => {
   filter.value.page = page
-  fetchUsers()
+  loadStudyResult()
 }
 </script>
 
@@ -60,7 +59,7 @@ const changePage = (page) => {
 <template>
   <main class="content">
     <section class="section">
-      <h2>회원 조회</h2>
+      <h2>학습 목록 조회</h2>
 
       <!-- 필터 바 -->
       <div class="card">
@@ -73,51 +72,62 @@ const changePage = (page) => {
               placeholder="회원 ID 검색"
           />
 
-          <label for="filter-deleted">탈퇴 여부</label>
-          <select id="filter-deleted" v-model="filter.isDeleted">
+          <label for="filter-year">연도</label>
+          <input
+              id="filter-year"
+              type="number"
+              v-model="filter.year"
+              placeholder="예: 2025"
+              min="2000"
+              max="2100"
+          />
+
+          <label for="filter-month">월</label>
+          <select id="filter-month" v-model="filter.month">
             <option :value="null">전체</option>
-            <option :value="'N'">정상</option>
-            <option :value="'Y'">탈퇴</option>
+            <option v-for="m in 12" :key="m" :value="m">{{ m }}월</option>
           </select>
 
           <button class="btn" @click="onSearch">검색</button>
         </div>
+
 
         <!-- 사용자 목록 테이블 -->
         <table class="table">
           <thead>
           <tr>
             <th>회원 ID</th>
-            <th>이름</th>
-            <th>성별</th>
-            <th>생일</th>
-            <th>포인트</th>
-            <th>탈퇴 여부</th>
+            <th>생성일</th>
+            <th>학습 분야</th>
+            <th>맞은 개수</th>
+            <th>상세보기</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="user in users" :key="user.accountId">
-            <td>{{ user.accountId }}</td>
-            <td>{{ user.name }}</td>
-            <td>{{ user.gender }}</td>
-            <td>{{ user.birthdate }}</td>
-            <td>{{ user.point ?? 0 }}</td>
-            <td>{{ user.isDeleted==="Y" ? '탈퇴' : '정상' }}</td>
+          <tr v-for="studyResult in studyResult" :key="studyResult.studyId">
+            <td>{{ studyResult.userId }}</td>
+            <td>{{ studyResult.createdAt }}</td>
+            <td>{{ studyResult.parentCategoryName }}</td>
+            <td>{{ studyResult.correctCount }}</td>
+            <td><RouterLink :to="`/admin/study/${studyResult.studyId}`">
+              상세보기
+            </RouterLink></td>
+
           </tr>
 
-          <tr v-if="users.length === 0">
-            <td colspan="6" style="color: #999;">조회된 회원이 없습니다.</td>
+          <tr v-if="studyResult.length === 0">
+            <td colspan="6" style="color: #999;">조회된 학습이 없습니다.</td>
           </tr>
           </tbody>
         </table>
 
         <PagingBar
-            :current-page="filter.page+1"
+            :current-page="filter.page"
             :total-pages="totalPages"
             :total-items="totalItems"
             @page-changed="changePage"
         />
-        </div>
+      </div>
     </section>
   </main>
 </template>
@@ -144,7 +154,7 @@ const changePage = (page) => {
   border: 1px solid #ddd;
   padding: 0.75rem;
   text-align: center;
-  width: calc(100% / 6); /* 6개의 열이라면 각 열은 16.66% */
+  width: calc(100% / 5); /* 6개의 열이라면 각 열은 16.66% */
   word-wrap: break-word; /* 긴 내용 줄바꿈 */
 }
 
