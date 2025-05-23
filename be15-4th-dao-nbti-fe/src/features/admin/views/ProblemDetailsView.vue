@@ -37,14 +37,23 @@ const filteredCategories = computed(() => {
 });
 
 const fetchProblem = async () => {
-  const problemId = route.params.problemId;
-  const res = await api.get(`/admin/problems/${problemId}`)
-  const data = res.data.data.problem
-  problem.value = {
-    ...data,
-    parentCategory: findParentCategoryId(data.categoryId)
+  try {
+    const problemId = route.params.problemId;
+    const res = await api.get(`/admin/problems/${problemId}`)
+    const data = res.data.data.problem
+    problem.value = {
+      ...data,
+      parentCategory: findParentCategoryId(data.categoryId)
+    }
+    selectedFile.value = null;  // 초기화
+  } catch (e) {
+    if (e.status === 404) {
+      toast.error('존재하지 않는 문제입니다.');
+    } else {
+      toast.error('문제 정보를 불러오지 못했습니다.');
+    }
+    router.push('/admin/problems');
   }
-  selectedFile.value = null;  // 초기화
 }
 
 onMounted(async () => {
