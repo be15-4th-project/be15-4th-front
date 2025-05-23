@@ -1,23 +1,13 @@
 <template>
   <div class="header">
     <div class="container">
-      <template v-if="!isAdmin">
-        <RouterLink to="/" aria-label="NBTI-home">
-          <img class="logo" src="@/assets/images/logo.png" alt="NBTI"/>
-        </RouterLink>
-      </template>
-      <template v-else>
-        <RouterLink to="/admin" aria-label="admin-home">
-          <img class="logo" src="@/assets/images/logo.png" alt="NBTI"/>
-        </RouterLink>
-      </template>
-
-<!--      <div class="text-wrapper">두뇌 트레이닝</div>-->
+      <div class="text-wrapper">
+        <img class="logo" :src="logo" alt="두뇌 트레이닝 로고" />NBTI</div>
     </div>
+
     <div class="navbar">
       <template v-if="!isAdmin">
-        <RouterLink to ="/" class="link">검사</RouterLink>
-        <RouterLink to="/" class="link">학습</RouterLink>
+        <RouterLink to ="/" class="link">검사 및 학습</RouterLink>
       </template>
       <template v-if="isUser">
         <RouterLink to ="/mypage/test" class="link">마이페이지</RouterLink>
@@ -25,10 +15,10 @@
       <template v-if="isAuthenticated">
         <div  class="button" @click = "handleLogout">로그아웃</div>
       </template>
-     <template v-else>
-       <RouterLink to ="/login" class="link">로그인</RouterLink>
-       <RouterLink to ="/signup" class="div">회원가입</RouterLink>
-     </template>
+      <template v-else>
+        <RouterLink to ="/login" class="link">로그인</RouterLink>
+        <RouterLink to ="/signup" class="div">회원가입</RouterLink>
+      </template>
     </div>
   </div>
   <small-modal :visible="modalVisible"  @cancel="closeModal" >
@@ -42,6 +32,7 @@
 <script setup>
 import {useAuthStore} from "@/stores/auth.js";
 import {useRouter} from "vue-router";
+import logo from "@/assets/images/logo.png";
 import {logoutUser} from "@/features/user/api.js";
 import SmallModal from "@/components/common/SmallModal.vue";
 import {computed, ref} from "vue";
@@ -74,11 +65,6 @@ const closeModal = async ()=>{
 </script>
 
 <style>
-.logo {
-  width: 48px;
-  height: 48px;
-}
-
 .header {
   align-items: center;
   background-color: #ffffff;
@@ -99,8 +85,16 @@ const closeModal = async ()=>{
   flex-direction: column;
   position: relative;
 }
+.header .logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
 
 .header .text-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: #007bff;
   font-size: 22.5px;
   font-weight: 700;
