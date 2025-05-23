@@ -42,6 +42,16 @@ export const adminRoutes = [
                 path: 'test/:id',
                 name: 'test-result',
                 component: () => import('@/features/admin/views/AdminTestDetailView.vue')
+            },
+            {
+                path: 'study',
+                name: 'study-list',
+                component: () => import('@/features/admin/views/StudyListView.vue')
+            },
+            {
+                path: 'study/:id',
+                name: 'study-result',
+                component: () => import('@/features/admin/views/AdminStudyDetailView.vue')
             }
 
         ]
