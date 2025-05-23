@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {ref, onMounted} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 import api from '@/api/axios.js'
 
 const route = useRoute()
@@ -20,7 +20,7 @@ const fetchObjection = async () => {
     console.error(e)
     router.push('/admin/objections')
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
@@ -93,7 +93,7 @@ onMounted(async () => {
   <main class="content">
     <section class="section">
       <template v-if="!isEditing">
-      <h2>이의 제기 상세</h2>
+        <h2>이의 제기 상세</h2>
       </template>
       <template v-else>
         <h2>이의 제기 상세 - 답변</h2>
@@ -102,20 +102,20 @@ onMounted(async () => {
       <div class="card" v-if="!isLoading && objection">
         <div class="form-group">
           <label>회원 아이디</label>
-          <input type="text" :value="objection.accountId" disabled />
+          <input type="text" :value="objection.accountId" disabled/>
         </div>
 
         <div class="form-group">
           <label>문제 ID</label>
           <div class="form-row">
-            <input type="text" :value="objection.problemId" disabled />
+            <input type="text" :value="objection.problemId" disabled/>
             <button class="btn" @click="goToProblem">문제 확인</button>
           </div>
         </div>
 
         <div class="form-group">
           <label>제출 일시</label>
-          <input type="text" :value="formatDateTimeWithWeekday(objection.createdAt)" disabled />
+          <input type="text" :value="formatDateTimeWithWeekday(objection.createdAt)" disabled/>
         </div>
 
         <div class="form-group">
@@ -145,11 +145,13 @@ onMounted(async () => {
         <div class="top-btn-group" v-else>
           <button class="btn" @click="goToList">목록으로</button>
         </div>
-
-
       </div>
-
-      <div v-else-if="isLoading">로딩 중...</div>
+      <div v-else-if="isLoading" class="card">
+        <div class="loading-overlay">
+          <div class="spinner"/>
+          <p>결과를 불러오는 중입니다...</p>
+        </div>
+      </div>
     </section>
   </main>
 </template>
@@ -164,7 +166,7 @@ onMounted(async () => {
   background: #fff;
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .flex {
@@ -229,9 +231,38 @@ onMounted(async () => {
 
 /* readonly지만 disabled처럼 스타일 부여 */
 .readonly-look {
-  background-color: #f5f5f5;  /* 회색 배경 */
-  color: #777;                /* 텍스트 색상 */
-  cursor: not-allowed;        /* 마우스 커서 */
-  pointer-events: none;       /* 클릭 막기 */
+  background-color: #f5f5f5; /* 회색 배경 */
+  color: #777; /* 텍스트 색상 */
+  cursor: not-allowed; /* 마우스 커서 */
+  pointer-events: none; /* 클릭 막기 */
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #3b82f6;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-overlay {
+  /* position: absolute; */
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 </style>
