@@ -1,9 +1,9 @@
 export const adminRoutes = [
     {
-        path:'/admin',
+        path: '/admin',
         component: () => import('@/features/admin/component/AdminLayout.vue'),
         children: [
-            { path: '', redirect: '/admin/user'},
+            {path: '', redirect: '/admin/user'},
             {
                 path: 'user',
                 name: 'manage-user',
@@ -33,7 +33,7 @@ export const adminRoutes = [
                 path: 'objections/:objectionId',
                 name: 'objection-details',
                 component: () => import('@/features/admin/views/ObjectionDetailsView.vue')
-            },{
+            }, {
                 path: 'test',
                 name: 'test-list',
                 component: () => import('@/features/admin/views/TestListView.vue')

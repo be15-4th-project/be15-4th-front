@@ -36,8 +36,8 @@ const isActive = (menuPath) => {
       </li>
       <li>
         <RouterLink
-            to="/admin/manage-user-study"
-            :class="{ active: isActive('/admin/manage-user-study') }"
+            to="/admin/study"
+            :class="{ active: isActive('/admin/study') }"
         >학습 결과</RouterLink>
       </li>
     </ul>
