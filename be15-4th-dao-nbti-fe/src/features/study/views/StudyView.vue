@@ -27,6 +27,12 @@ const time = ref(0)
 const timerDisplay = ref('0')
 let interval
 
+const hasStarted = ref(false)
+
+const showDigits = ref(false)
+const digitsToShow = ref([])
+const digitDisplayIndex = ref(0)
+
 const userAnswerParts = ref([])
 const userAnswers = ref([])
 
@@ -36,6 +42,9 @@ const isImageModalOpen = ref(false)
 const isConfirmModalOpen = ref(false)
 
 function openImageModal() {
+  const current = problems.value[currentProblemIndex.value]
+  // 17번 카테고리 문제의 경우 이미지 확대 모달 비활성화
+  if (current?.categoryId === 17) return
   isImageModalOpen.value = true
 }
 function closeImageModal() {
@@ -69,31 +78,72 @@ async function fetchProblems() {
     problems.value = res.data.data.slice(0, 3)
     currentProblemIndex.value = 0
     updateAnswerFields()
-    startTimer()
   } catch (e) {
     console.error('문제 불러오기 실패:', e)
   }
 }
 
-// 정답 입력 필드 갱신
+// 정답 입력 필드 갱신 및 타이머/애니메이션 분기
 function updateAnswerFields() {
+  clearInterval(interval)
+  hasStarted.value = false
+  showDigits.value = false
+  digitDisplayIndex.value = 0
+
   const current = problems.value[currentProblemIndex.value]
   const correct = current?.correctAnswer ?? ''
-
-  // 해당 문제 categoryId와 level 기준으로 판단
   const categoryIdVal = current?.categoryId
   const levelVal = current?.level
 
   const isForceSingleInput = categoryIdVal === 17 && levelVal === 3
-
   correctAnswerParts.value = isForceSingleInput
-      ? [''] // 입력칸 하나로 고정
+      ? ['']
       : (correct.includes(',') ? correct.split(',').map(s => s.trim()) : [''])
-
   userAnswerParts.value = correctAnswerParts.value.map(() => '')
+
+  const needsDigitDisplay = categoryIdVal === 17 && [1,2,3].includes(levelVal)
+  if (!needsDigitDisplay) {
+    startTimer()
+  }
 }
 
+function displayDigitsByLevel(correctAnswer, level) {
+  let digits = correctAnswer.split('')
+  if (level === 2) digits = digits.reverse()
+  else if (level === 3) digits = shuffle([...digits])
 
+  digitsToShow.value = digits
+  digitDisplayIndex.value = 0
+  showDigits.value = true
+
+  let idx = 1
+  const intervalId = setInterval(() => {
+    if (idx < digits.length) {
+      digitDisplayIndex.value = idx
+      idx++
+    } else {
+      clearInterval(intervalId)
+      showDigits.value = false
+      startTimer()  // 숫자 표시 끝나면 타이머 시작
+    }
+  }, 1500)
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
+}
+
+function startDigitDisplay() {
+  const current = problems.value[currentProblemIndex.value]
+  if (current) {
+    hasStarted.value = true
+    displayDigitsByLevel(current.correctAnswer, current.level)
+  }
+}
 
 // 타이머 시작
 function startTimer() {
@@ -133,7 +183,6 @@ function goToNextProblem() {
     isConfirmModalOpen.value = true
     return
   }
-
   submitAnswerAndContinue()
 }
 
@@ -147,7 +196,6 @@ function submitAnswerAndContinue() {
   if (currentProblemIndex.value < totalProblems.value - 1) {
     currentProblemIndex.value++
     updateAnswerFields()
-    startTimer()
   } else {
     clearInterval(interval)
     submitAllAnswers()
@@ -161,7 +209,6 @@ watchEffect(() => {
           : 0
 })
 </script>
-
 
 <template>
   <div class="timer">{{ timerDisplay }}</div>
@@ -178,6 +225,19 @@ watchEffect(() => {
           alt="문제 이미지"
           @click="openImageModal"
       />
+      <div
+          v-if="showDigits"
+          :key="digitDisplayIndex"
+          class="digit-overlay"
+      >
+        {{ digitsToShow[digitDisplayIndex] }}
+      </div>
+    </div>
+
+    <div
+        class="button-group"
+        v-if="!hasStarted && problems[currentProblemIndex].categoryId === 17 && [1, 2, 3].includes(problems[currentProblemIndex].level)">
+      <button class="btn" @click="startDigitDisplay">시작</button>
     </div>
 
     <div class="answer-input">
@@ -196,7 +256,6 @@ watchEffect(() => {
         </div>
       </div>
     </div>
-
 
     <div class="button-group">
       <button class="btn" @click="goToNextProblem">다음</button>
@@ -231,7 +290,6 @@ watchEffect(() => {
   </div>
 </template>
 
-
 <style scoped>
 .container {
   max-width: 900px;
@@ -263,6 +321,7 @@ watchEffect(() => {
   display: flex;
   justify-content: center;
   margin-bottom: 2rem;
+  position: relative;
 }
 
 .question-image {
@@ -275,10 +334,30 @@ watchEffect(() => {
   cursor: pointer;
 }
 
+.digit-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;           /* flex로 중앙 정렬 */
+  align-items: center;
+  justify-content: center;
+  font-size: 6rem;
+  font-weight: bold;
+  color: #3b82f6;
+  pointer-events: none;
+  animation: fadeOpacity 1s ease-in-out;
+}
+
+@keyframes fadeOpacity {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .answer-input {
   display: flex;
   align-items: center;
-  justify-content: center; /* 가운데 정렬 */
+  justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
   flex-wrap: wrap;
@@ -305,8 +384,6 @@ watchEffect(() => {
   justify-content: center;
 }
 
-
-
 .button-group {
   margin-top: 2rem;
   display: flex;
@@ -325,18 +402,14 @@ watchEffect(() => {
   transition: background 0.2s ease;
 }
 
-.btn:hover {
-  background: #1e3a8a;
-}
+.btn:hover { background: #1e3a8a; }
 
 .cancel {
   background-color: #e5e7eb;
   color: #111;
 }
 
-.cancel:hover {
-  background-color: #d1d5db;
-}
+.cancel:hover { background-color: #d1d5db; }
 
 .timer {
   position: absolute;
@@ -355,10 +428,8 @@ watchEffect(() => {
 
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   background-color: rgba(0, 0, 0, 0.75);
   display: flex;
   justify-content: center;
@@ -366,16 +437,9 @@ watchEffect(() => {
   z-index: 1000;
 }
 
-.modal-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+.modal-wrapper { display: flex; align-items: center; justify-content: center; }
 
-.modal-image-container {
-  position: relative;
-  display: inline-block;
-}
+.modal-image-container { position: relative; display: inline-block; }
 
 .modal-image {
   max-width: 90vw;
@@ -387,15 +451,13 @@ watchEffect(() => {
 
 .close-button {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 8px; right: 8px;
   font-size: 24px;
   color: white;
   background-color: rgba(0, 0, 0, 0.6);
   border: none;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 36px; height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -404,9 +466,7 @@ watchEffect(() => {
   transition: transform 0.15s ease;
 }
 
-.close-button:hover {
-  transform: scale(1.2);
-}
+.close-button:hover { transform: scale(1.2); }
 
 .confirm-modal {
   background: white;
