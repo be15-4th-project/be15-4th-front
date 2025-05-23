@@ -27,8 +27,10 @@ const time = ref(0)
 const timerDisplay = ref('0')
 let interval
 
-const userAnswer = ref('')
+const userAnswerParts = ref([])
 const userAnswers = ref([])
+
+const correctAnswerParts = ref([])
 
 const isImageModalOpen = ref(false)
 const isConfirmModalOpen = ref(false)
@@ -66,11 +68,32 @@ async function fetchProblems() {
     const res = await getProblems(categoryId.value, level.value)
     problems.value = res.data.data.slice(0, 3)
     currentProblemIndex.value = 0
+    updateAnswerFields()
     startTimer()
   } catch (e) {
     console.error('문제 불러오기 실패:', e)
   }
 }
+
+// 정답 입력 필드 갱신
+function updateAnswerFields() {
+  const current = problems.value[currentProblemIndex.value]
+  const correct = current?.correctAnswer ?? ''
+
+  // 해당 문제 categoryId와 level 기준으로 판단
+  const categoryIdVal = current?.categoryId
+  const levelVal = current?.level
+
+  const isForceSingleInput = categoryIdVal === 17 && levelVal === 3
+
+  correctAnswerParts.value = isForceSingleInput
+      ? [''] // 입력칸 하나로 고정
+      : (correct.includes(',') ? correct.split(',').map(s => s.trim()) : [''])
+
+  userAnswerParts.value = correctAnswerParts.value.map(() => '')
+}
+
+
 
 // 타이머 시작
 function startTimer() {
@@ -101,14 +124,16 @@ async function submitAllAnswers() {
   }
 }
 
+function getJoinedAnswer() {
+  return userAnswerParts.value.map(part => part.trim()).join(', ')
+}
+
 function goToNextProblem() {
-  // 시간이 남았고, 답안이 비어 있다면 모달 띄움
-  if (time.value > 0 && userAnswer.value.trim() === '') {
+  if (time.value > 0 && userAnswerParts.value.every(p => p.trim() === '')) {
     isConfirmModalOpen.value = true
     return
   }
 
-  // 시간이 다 됐거나 답안이 입력되어 있으면 바로 다음으로
   submitAnswerAndContinue()
 }
 
@@ -116,12 +141,12 @@ function submitAnswerAndContinue() {
   const current = problems.value[currentProblemIndex.value]
   userAnswers.value.push({
     problemId: current.problemId,
-    userAnswer: userAnswer.value
+    userAnswer: getJoinedAnswer()
   })
 
   if (currentProblemIndex.value < totalProblems.value - 1) {
     currentProblemIndex.value++
-    userAnswer.value = ''
+    updateAnswerFields()
     startTimer()
   } else {
     clearInterval(interval)
@@ -136,6 +161,7 @@ watchEffect(() => {
           : 0
 })
 </script>
+
 
 <template>
   <div class="timer">{{ timerDisplay }}</div>
@@ -155,9 +181,22 @@ watchEffect(() => {
     </div>
 
     <div class="answer-input">
-      정답 :
-      <input type="text" v-model="userAnswer" />
+      <label class="answer-label">정답 :</label>
+      <div class="answer-fields">
+        <div v-if="correctAnswerParts.length > 1" class="multi-inputs">
+          <input
+              v-for="(part, index) in correctAnswerParts"
+              :key="index"
+              type="text"
+              v-model="userAnswerParts[index]"
+          />
+        </div>
+        <div v-else>
+          <input type="text" v-model="userAnswerParts[0]" />
+        </div>
+      </div>
     </div>
+
 
     <div class="button-group">
       <button class="btn" @click="goToNextProblem">다음</button>
@@ -191,6 +230,7 @@ watchEffect(() => {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .container {
@@ -236,10 +276,20 @@ watchEffect(() => {
 }
 
 .answer-input {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 가운데 정렬 */
+  gap: 1rem;
   margin-top: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.answer-input input {
+.answer-label {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.answer-fields input {
   padding: 0.5rem 1rem;
   font-size: 1rem;
   border-radius: 8px;
@@ -247,6 +297,15 @@ watchEffect(() => {
   width: 100px;
   text-align: center;
 }
+
+.multi-inputs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+
 
 .button-group {
   margin-top: 2rem;
