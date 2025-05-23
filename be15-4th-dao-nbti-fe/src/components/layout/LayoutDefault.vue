@@ -37,7 +37,6 @@ import Header from "@/components/layout/Header.vue";
 
 .main-content {
   flex: 1;
-  padding: 24px;
   overflow-y: auto;
   background-color: white;
 }

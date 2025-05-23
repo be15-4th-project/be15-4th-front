@@ -44,7 +44,7 @@ const isActive = (path) => route.path === path || route.path.startsWith(path + '
   box-sizing: content-box;
   position: sticky;
   top: 0;
-  height: 100vh;
+  //height: auto;
   //flex-shrink: 0;
 }
 

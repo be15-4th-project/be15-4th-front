@@ -253,6 +253,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+  margin-bottom: 20px;
 }
 .modal-header {
   display: flex;
