@@ -1,7 +1,18 @@
 <template>
   <div class="header">
     <div class="container">
-      <div class="text-wrapper">두뇌 트레이닝</div>
+      <template v-if="!isAdmin">
+        <RouterLink to="/" aria-label="NBTI-home">
+          <img class="logo" src="@/assets/images/logo.png" alt="NBTI"/>
+        </RouterLink>
+      </template>
+      <template v-else>
+        <RouterLink to="/admin" aria-label="admin-home">
+          <img class="logo" src="@/assets/images/logo.png" alt="NBTI"/>
+        </RouterLink>
+      </template>
+
+<!--      <div class="text-wrapper">두뇌 트레이닝</div>-->
     </div>
     <div class="navbar">
       <template v-if="!isAdmin">
@@ -63,6 +74,11 @@ const closeModal = async ()=>{
 </script>
 
 <style>
+.logo {
+  width: 48px;
+  height: 48px;
+}
+
 .header {
   align-items: center;
   background-color: #ffffff;
