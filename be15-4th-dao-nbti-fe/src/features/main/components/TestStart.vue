@@ -47,17 +47,21 @@ function handleStartClick() {
     if (isFormalTest.value) {
         if (userPoint.value < 5) {
             modalMessage.value =
-                `<strong>[정식 검사]</strong><br>포인트가 부족해 검사를 진행할 수 없습니다.<br>검사 진행을 위해서는 5point가 필요합니다.<br>
-                 <br><strong>잔여 포인트</strong><br>${userPoint.value} point`
+                `<div style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">정식 검사</div>
+                 포인트가 부족해 검사를 진행할 수 없습니다.
+                 <br>검사를 진행하려면 <strong>5 point</strong>가 필요합니다.<br>
+                 <br><strong>📢 현재 회원님의 잔여 포인트는 <span style="color: #3B82F6">${userPoint.value} point</span> 입니다.</strong>`
             showConfirmButton.value = false
         } else {
             modalMessage.value =
-                '<strong>[정식 검사]</strong><br>검사 중간에 종료하는 경우 포인트는 차감되지 않지만<br>이 페이지로 다시 돌아올 수 없습니다.'
+                '<div style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">정식 검사</div>' +
+                '검사 중간에 종료하는 경우 포인트는 차감되지 않지만<br>검사 페이지로 다시 돌아갈 수 없습니다.'
             showConfirmButton.value = true
         }
     } else {
         modalMessage.value =
-            '<strong>[맛보기 검사]</strong><br>검사 중간에 종료하는 경우<br>다시 현재 페이지로 돌아올 수 없습니다.'
+            '<div style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">맛보기 검사</div>' +
+            '검사 중간에 종료하는 경우<br>다시 검사 페이지로 돌아올 수 없습니다. <br>'
         showConfirmButton.value = true
     }
 }
