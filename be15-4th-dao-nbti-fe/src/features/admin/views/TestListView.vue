@@ -50,6 +50,14 @@ const changePage = (page) => {
   filter.value.page = page
   loadTestResult()
 }
+
+const formatDateTimeWithWeekday = (datetimeStr) => {
+  const [datePart, timePart] = datetimeStr.split('T'); // ['2025-05-20', '10:18:00']
+  const date = new Date(datePart);
+  const weekdays = '일월화수목금토';
+  const day = weekdays[date.getDay()];
+  return `${datePart} (${day}) ${timePart}`;
+};
 </script>
 
 
@@ -58,7 +66,7 @@ const changePage = (page) => {
 <template>
   <main class="content">
     <section class="section">
-      <h2>회원 조회</h2>
+      <h2>검사 결과 조회</h2>
 
       <!-- 필터 바 -->
       <div class="card">
@@ -96,7 +104,7 @@ const changePage = (page) => {
           <thead>
           <tr>
             <th>회원 ID</th>
-            <th>생성일</th>
+            <th>생성일시</th>
             <th>높은 카테고리</th>
             <th>낮은 카테고리</th>
             <th>총점</th>
@@ -106,7 +114,7 @@ const changePage = (page) => {
           <tbody>
           <tr v-for="testResult in testResults" :key="testResult.testResultId">
             <td>{{ testResult.accountId }}</td>
-            <td>{{ testResult.createdAt }}</td>
+            <td>{{ formatDateTimeWithWeekday(testResult.createdAt) }}</td>
             <td>{{ testResult.highestCategory }}</td>
             <td>{{ testResult.lowestCategory }}</td>
             <td>{{ testResult.totalScore }}</td>
@@ -170,4 +178,9 @@ const changePage = (page) => {
 .pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1rem; }
 .pagination button { padding: 0.4rem 0.8rem; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; }
 .pagination button.active { background: #007bff; color: #fff; border-color: #007bff; }
+
+a{
+  color: #007bff;
+}
+
 </style>
