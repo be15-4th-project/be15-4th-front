@@ -103,7 +103,12 @@ onMounted(async () => {
 
       <div class="card" v-if="!isLoading && objection">
         <div class="form-group">
-          <label>회원 아이디</label>
+          <label>이의 제기 ID</label>
+          <input type="text" :value="objection.objectionId" disabled/>
+        </div>
+
+        <div class="form-group">
+          <label>회원 ID</label>
           <input type="text" :value="objection.accountId" disabled/>
         </div>
 

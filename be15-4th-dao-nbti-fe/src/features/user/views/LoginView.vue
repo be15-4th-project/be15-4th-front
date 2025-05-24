@@ -2,16 +2,22 @@
 import {computed, reactive, ref} from "vue";
 import LoginForm from "@/features/user/components/LoginForm.vue";
 import {useAuthStore} from "@/stores/auth.js";
-import {useRouter} from "vue-router";
+import {useRouter, useRoute} from "vue-router";
 import {loginUser} from "@/features/user/api.js";
 import SmallModal from "@/components/common/SmallModal.vue";
 import {storeToRefs} from "pinia";
-
 const router = useRouter();
+const route = useRoute()
+
 const authStore = useAuthStore()
 const { isAuthenticated, userRole } = storeToRefs(authStore)
 const isUser = computed(() =>isAuthenticated.value && userRole.value === 'USER')
 const isAdmin = computed(() =>isAuthenticated.value && userRole.value === 'ADMIN')
+function handleLoginSuccess() {
+
+  const redirectTo = route.query.redirect || '/mypage'
+  router.push(redirectTo)
+}
 const form = reactive({
   loginId: '',
   password: ''
