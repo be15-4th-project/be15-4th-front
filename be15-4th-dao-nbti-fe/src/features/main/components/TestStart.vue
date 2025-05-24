@@ -4,24 +4,29 @@ import {useRouter} from "vue-router";
 import {useAuthStore} from "@/stores/auth.js";
 import {getUserPoints} from "@/features/test/api.js";
 import BigModal from "@/components/common/BigModal.vue";
+import TestGuideModal from "@/components/common/TestGuideModal.vue";
 
-// 경로 이동을 위한 부분
+/* 경로 이동을 위한 부분 */
 const router = useRouter();
 const authStore = useAuthStore()
 
-// 맛보기 검사, 정식 검사 여부 확인
+/* 맛보기 검사, 정식 검사 여부 확인 */
 const isFormalTest = computed(() => authStore.isAuthenticated)
-// 회원이면 18문제, 비회원이면 6문제
+/* 회원이면 18문제, 비회원이면 6문제 */
 const totalProblems = computed(() => authStore.isAuthenticated ? 18 : 6)
-// 회원의 포인트 내역
+/* 회원의 포인트 내역*/
 const userPoint = ref(0);
 
-const modalVisible = ref(false)
-const modalMessage = ref('')
-const showConfirmButton = ref(true)
-const confirmButtonText = ref('계속')
+/* 검사 시작 안내 모달 */
+const showStartModal = ref(false);
+const modalMessage = ref('');
+const showConfirmButton = ref(true);
+const confirmButtonText = ref('계속');
 
-// 회원의 포인트 불러오는 api
+/* 문제 풀이 안내 모달*/
+const showGuideModal = ref(false);
+
+/* 회원의 포인트를 불러오는 api */
 onMounted(async () => {
     if (isFormalTest.value) {
         try {
@@ -35,13 +40,15 @@ onMounted(async () => {
     }
 })
 
+/* 시작 클릭시 발생하는 부분 */
 function handleStartClick() {
-    modalVisible.value = true
+    showStartModal.value = true;
 
     if (isFormalTest.value) {
         if (userPoint.value < 5) {
             modalMessage.value =
-                `<strong>[정식 검사]</strong><br>포인트가 부족해 검사를 진행할 수 없습니다.<br><br><strong>잔여 포인트</strong><br>${userPoint.value} point`
+                `<strong>[정식 검사]</strong><br>포인트가 부족해 검사를 진행할 수 없습니다.<br>검사 진행을 위해서는 5point가 필요합니다.<br>
+                 <br><strong>잔여 포인트</strong><br>${userPoint.value} point`
             showConfirmButton.value = false
         } else {
             modalMessage.value =
@@ -55,11 +62,19 @@ function handleStartClick() {
     }
 }
 
+/* 모달창 닫기 */
 function closeModal() {
-    modalVisible.value = false
+    showStartModal.value = false;
+    showGuideModal.value = false ;
 }
 
-// 테스트 진행하기
+/* 문제 풀이 안내 모달 보기 */
+function guideModal() {
+    showStartModal.value= false;
+    showGuideModal.value = true ;
+}
+
+/* 테스트 진행하기 */
 function proceedTest() {
     router.push('/test');
 }
@@ -77,16 +92,22 @@ function proceedTest() {
     </div>
 
     <BigModal
-        :visible="modalVisible"
+        :visible="showStartModal"
         :confirm-visible="showConfirmButton"
         :confirm-text="confirmButtonText"
-        @confirm="proceedTest"
+        @confirm="guideModal"
         @cancel="closeModal"
     >
         <template #default>
-            <p v-html="modalMessage  " />
+            <p v-html="modalMessage" />
         </template>
     </BigModal>
+
+    <TestGuideModal
+        :visible="showGuideModal"
+        @confirm="proceedTest"
+        @cancel="closeModal"
+    />
 </template>
 
 <style scoped>
