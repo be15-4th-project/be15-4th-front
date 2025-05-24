@@ -3,13 +3,15 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {fetchStudyResult, fetchTestResultList} from "@/features/admin/api.js"
 import PagingBar from "@/features/admin/components/PagingBar.vue";
+import api from "@/api/axios.js";
 
 const studyResult = ref([])
+const parentCategories = ref([]);
 const totalItems = ref(0)
 const totalPages = ref(0)
 const filter = ref({
   userId: '',
-  parentCategoryId: null,
+  parentCategoryId: '',
   startDate:null,
   endDate: null,
   page: 1,
@@ -38,9 +40,11 @@ const loadStudyResult = async () => {
   }
 }
 
-onMounted(async () => {
-  await loadStudyResult()
-})
+const fetchCategories = async () => {
+  const response = await api.get('/admin/categories')
+  parentCategories.value = response.data.data.parentCategories;
+  categories.value = response.data.data.childCategories;
+}
 
 const onSearch = () => {
   filter.value.page = 1
@@ -51,6 +55,19 @@ const changePage = (page) => {
   filter.value.page = page
   loadStudyResult()
 }
+
+const formatDateTimeWithWeekday = (datetimeStr) => {
+  const [datePart, timePart] = datetimeStr.split('T'); // ['2025-05-20', '10:18:00']
+  const date = new Date(datePart);
+  const weekdays = '일월화수목금토';
+  const day = weekdays[date.getDay()];
+  return `${datePart} (${day}) ${timePart}`;
+};
+
+onMounted(async () => {
+  await loadStudyResult()
+  await fetchCategories()
+})
 </script>
 
 
@@ -72,20 +89,25 @@ const changePage = (page) => {
               placeholder="회원 ID 검색"
           />
 
-          <label for="filter-year">연도</label>
+          <label for="filter-startDate">검색 시작일</label>
           <input
-              id="filter-year"
-              type="number"
-              v-model="filter.year"
-              placeholder="예: 2025"
-              min="2000"
-              max="2100"
+              id="filter-startDate"
+              type="date"
+              v-model="filter.startDate"
           />
-
-          <label for="filter-month">월</label>
-          <select id="filter-month" v-model="filter.month">
-            <option :value="null">전체</option>
-            <option v-for="m in 12" :key="m" :value="m">{{ m }}월</option>
+          <label for="filter-startDate">검색 종료일</label>
+          <input
+              id="filter-endDate"
+              type="date"
+              v-model="filter.endDate"
+          />
+          <label for="filter-parent-category">분야</label>
+          <select id="filter-parent-category" v-model="filter.parentCategoryId">
+            <option value="">전체</option>
+            <option v-for="item in parentCategories" :key="item.categoryId" :value="item.categoryId">{{
+                item.name
+              }}
+            </option>
           </select>
 
           <button class="btn" @click="onSearch">검색</button>
@@ -106,7 +128,7 @@ const changePage = (page) => {
           <tbody>
           <tr v-for="studyResult in studyResult" :key="studyResult.studyId">
             <td>{{ studyResult.userId }}</td>
-            <td>{{ studyResult.createdAt }}</td>
+            <td>{{ formatDateTimeWithWeekday(studyResult.createdAt) }}</td>
             <td>{{ studyResult.parentCategoryName }}</td>
             <td>{{ studyResult.correctCount }}</td>
             <td><RouterLink :to="`/admin/study/${studyResult.studyId}`">

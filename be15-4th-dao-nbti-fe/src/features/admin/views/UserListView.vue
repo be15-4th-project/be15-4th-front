@@ -76,8 +76,8 @@ const changePage = (page) => {
           <label for="filter-deleted">탈퇴 여부</label>
           <select id="filter-deleted" v-model="filter.isDeleted">
             <option :value="null">전체</option>
-            <option :value="'N'">정상</option>
-            <option :value="'Y'">탈퇴</option>
+            <option :value="'N'">X</option>
+            <option :value="'Y'">O</option>
           </select>
 
           <button class="btn" @click="onSearch">검색</button>
@@ -102,7 +102,7 @@ const changePage = (page) => {
             <td>{{ user.gender }}</td>
             <td>{{ user.birthdate }}</td>
             <td>{{ user.point ?? 0 }}</td>
-            <td>{{ user.isDeleted==="Y" ? '탈퇴' : '정상' }}</td>
+            <td>{{ user.isDeleted==="Y" ? 'O' : 'X' }}</td>
           </tr>
 
           <tr v-if="users.length === 0">
