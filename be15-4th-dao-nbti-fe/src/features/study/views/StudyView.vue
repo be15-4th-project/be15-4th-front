@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watchEffect, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, watchEffect, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProblems, submitAnswers } from "@/features/study/api.js"
 import router from "@/router/index.js"
@@ -41,9 +41,11 @@ const correctAnswerParts = ref([])
 const isImageModalOpen = ref(false)
 const isConfirmModalOpen = ref(false)
 
+const inputRefs = ref([])
+const singleInputRef = ref(null)
+
 function openImageModal() {
   const current = problems.value[currentProblemIndex.value]
-  // 17번 카테고리 문제의 경우 이미지 확대 모달 비활성화
   if (current?.categoryId === 17) return
   isImageModalOpen.value = true
 }
@@ -58,7 +60,6 @@ function confirmAndContinue() {
   submitAnswerAndContinue()
 }
 
-// ESC로 닫기
 function onEsc(e) {
   if (e.key === 'Escape') closeImageModal()
 }
@@ -71,7 +72,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onEsc)
 })
 
-// 문제 가져오기
 async function fetchProblems() {
   try {
     const res = await getProblems(categoryId.value, level.value)
@@ -83,7 +83,6 @@ async function fetchProblems() {
   }
 }
 
-// 정답 입력 필드 갱신 및 타이머/애니메이션 분기
 function updateAnswerFields() {
   clearInterval(interval)
   hasStarted.value = false
@@ -105,6 +104,15 @@ function updateAnswerFields() {
   if (!needsDigitDisplay) {
     startTimer()
   }
+
+  // 포커싱 처리
+  nextTick(() => {
+    if (correctAnswerParts.value.length > 1) {
+      inputRefs.value[0]?.focus()
+    } else {
+      singleInputRef.value?.focus()
+    }
+  })
 }
 
 function displayDigitsByLevel(correctAnswer, level) {
@@ -124,7 +132,7 @@ function displayDigitsByLevel(correctAnswer, level) {
     } else {
       clearInterval(intervalId)
       showDigits.value = false
-      startTimer()  // 숫자 표시 끝나면 타이머 시작
+      startTimer()
     }
   }, 1500)
 }
@@ -145,7 +153,6 @@ function startDigitDisplay() {
   }
 }
 
-// 타이머 시작
 function startTimer() {
   if (interval) clearInterval(interval)
   const current = problems.value[currentProblemIndex.value]
@@ -210,6 +217,7 @@ watchEffect(() => {
 })
 </script>
 
+
 <template>
   <div class="timer">{{ timerDisplay }}</div>
 
@@ -249,13 +257,19 @@ watchEffect(() => {
               :key="index"
               type="text"
               v-model="userAnswerParts[index]"
+              ref="inputRefs"
           />
         </div>
         <div v-else>
-          <input type="text" v-model="userAnswerParts[0]" />
+          <input
+              type="text"
+              v-model="userAnswerParts[0]"
+              ref="singleInputRef"
+          />
         </div>
       </div>
     </div>
+
 
     <div class="button-group">
       <button class="btn" @click="goToNextProblem">다음</button>
