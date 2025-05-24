@@ -3,15 +3,20 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.js'
 import StudyCard from './StudyCard.vue'
-import DifficultyModal from "@/components/common/DifficultyModal.vue";
-import LoginRequiredModal from "@/components/common/LoginRequiredModal.vue";
+import DifficultyModal from "@/components/common/DifficultyModal.vue"
+import LoginRequiredModal from "@/components/common/LoginRequiredModal.vue"
+import TestGuideModal from "@/components/common/TestGuideModal.vue"
 
 const router = useRouter()
 const authStore = useAuthStore()
 
+// 모달 상태
 const isModalOpen = ref(false)
 const isLoginModalOpen = ref(false)
+const showGuideModal = ref(false)
+
 const selectedCategory = ref(null)
+const selectedLevel = ref(0)
 
 const items = [
   { title: '언어 이해', description: '언어를 해석하고 의미를 파악하는\n인지 능력' },
@@ -33,14 +38,9 @@ function onCardClick(item) {
 }
 
 function onModalConfirm(level) {
-  router.push({
-    path: '/study',
-    query: {
-      category: selectedCategory.value,
-      level
-    }
-  })
+  selectedLevel.value = level
   isModalOpen.value = false
+  showGuideModal.value = true
 }
 
 function onModalCancel() {
@@ -54,6 +54,17 @@ function onLoginConfirm() {
 
 function onLoginCancel() {
   isLoginModalOpen.value = false
+}
+
+function startStudy() {
+  showGuideModal.value = false
+  router.push({
+    path: '/study',
+    query: {
+      category: selectedCategory.value,
+      level: selectedLevel.value
+    }
+  })
 }
 </script>
 
@@ -84,6 +95,12 @@ function onLoginCancel() {
         :visible="isLoginModalOpen"
         @confirm="onLoginConfirm"
         @cancel="onLoginCancel"
+    />
+
+    <TestGuideModal
+        :visible="showGuideModal"
+        @confirm="startStudy"
+        @cancel="() => (showGuideModal.value = false)"
     />
   </div>
 </template>

@@ -258,6 +258,7 @@ watchEffect(() => {
               type="text"
               v-model="userAnswerParts[index]"
               ref="inputRefs"
+              :placeholder="`A${index + 1}`"
           />
         </div>
         <div v-else>
