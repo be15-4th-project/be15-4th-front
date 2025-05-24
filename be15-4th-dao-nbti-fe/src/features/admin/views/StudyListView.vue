@@ -51,6 +51,14 @@ const changePage = (page) => {
   filter.value.page = page
   loadStudyResult()
 }
+
+const formatDateTimeWithWeekday = (datetimeStr) => {
+  const [datePart, timePart] = datetimeStr.split('T'); // ['2025-05-20', '10:18:00']
+  const date = new Date(datePart);
+  const weekdays = '일월화수목금토';
+  const day = weekdays[date.getDay()];
+  return `${datePart} (${day}) ${timePart}`;
+};
 </script>
 
 
@@ -106,7 +114,7 @@ const changePage = (page) => {
           <tbody>
           <tr v-for="studyResult in studyResult" :key="studyResult.studyId">
             <td>{{ studyResult.userId }}</td>
-            <td>{{ studyResult.createdAt }}</td>
+            <td>{{ formatDateTimeWithWeekday(studyResult.createdAt) }}</td>
             <td>{{ studyResult.parentCategoryName }}</td>
             <td>{{ studyResult.correctCount }}</td>
             <td><RouterLink :to="`/admin/study/${studyResult.studyId}`">
