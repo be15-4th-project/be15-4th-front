@@ -6,6 +6,8 @@ import { adminRoutes } from "@/features/admin/router.js";
 import { userRoutes } from "@/features/user/router.js";
 import { studyRoutes } from "@/features/study/router.js";
 import {testRoutes} from "@/features/test/router.js";
+import { useAuthStore } from '@/stores/auth' // Pinia auth store 경로에 맞게 조정
+import { useToast } from 'vue-toastification'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -26,6 +28,22 @@ const router = createRouter({
         },
 
     ]
+})
+
+router.beforeEach((to, from, next) => {
+    const auth = useAuthStore()
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+    if (requiresAuth && !auth.accessToken) {
+        // 사용자에게 알림 (옵션)
+        const toast = useToast()
+        toast.error('로그인이 필요한 페이지입니다.')
+
+        // 로그인 페이지로 이동 + 원래 목적지 기억
+        next({ path: '/login', query: { redirect: to.fullPath } })
+    } else {
+        next()
+    }
 })
 
 export default router
