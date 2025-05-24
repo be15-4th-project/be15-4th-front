@@ -29,9 +29,6 @@ const login = async () => {
       password: form.password
     });
 
-    if (response.data.success === false) {
-      throw new Error(response.data.message);
-    }
 
     console.log('로그인 성공', response.data)
     const accessToken = response.data.data.accessToken;
@@ -40,7 +37,7 @@ const login = async () => {
     modalMessage.value = "로그인에 성공했습니다."
     loginSuccess.value=true
   }  catch (error) {
-    modalMessage.value = error.response?.data?.message;
+    modalMessage.value = '올바르지 않은 입력입니다.'
 
   } finally {
     modalVisible.value = true;
