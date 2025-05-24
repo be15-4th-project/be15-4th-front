@@ -9,17 +9,16 @@ import {useAuthStore} from "@/stores/auth.js";
 
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const radarCanvas = ref(null);
+
 const modalVisible = ref(false);
 const modalMessage = ref('');
 const isUser = computed(() => authStore.isAuthenticated);
 const testResultId = route.params.testResultId;
-
-console.log('저장된 회원의 아이디는? : ', authStore.userId)
-console.log('받은 testResultId:', testResultId)
+const maxScore = ref(0);
 
 const categoryIcons = {
     '언어 이해':   new URL('@/assets/images/language_comprehension.png', import.meta.url).href,
@@ -40,6 +39,9 @@ onMounted(async () => {
 
         scores.value = res.data.data.scores;
         summary.value = res.data.data.aiText;
+
+        const userId = res.data.data.userId;
+        const maxScoreValue = userId ? 6 : 2;
 
         await nextTick();
 
@@ -63,7 +65,7 @@ onMounted(async () => {
                 scales: {
                     r: {
                         min: 0,
-                        max: 6,
+                        max: maxScoreValue,
                         ticks: { stepSize: 1, color: '#555' },
                         grid: { color: '#ddd' },
                         pointLabels: { color: '#333', font: { size: 14 } }
@@ -72,9 +74,16 @@ onMounted(async () => {
                 plugins: { legend: { display: false } }
             }
         })
+
+        maxScore.value = maxScoreValue;
+
     } catch (e) {
-        toast.error('결과 불러오기에 실패했습니다.')
-        console.error(e)
+        if (scores == null) {
+            toast.error('결과 불러오기에 실패했습니다.')
+        } else{
+            toast.error('에러가 발생했습니다.')
+        }
+
     }
 })
 
@@ -115,7 +124,7 @@ function goToMain() {
 
 <template>
     <div class="container">
-        <h2>검사 결과</h2>
+        <h2>인지 능력 검사 결과</h2>
 
         <div class="chart-container">
             <canvas ref="radarCanvas"></canvas>
@@ -138,7 +147,7 @@ function goToMain() {
                         <div class="score-num">{{ item.score }}점</div>
                     </div>
                     <div class="score-bar">
-                        <div class="bar" :style="{ width: (item.score / 6) * 100 + '%' }"></div>
+                        <div class="bar" :style="{ width: (item.score / maxScore) * 100 + '%' }"></div>
                     </div>
                     <div class="category-content">{{ item.description }}</div>
                 </div>
@@ -175,7 +184,7 @@ body {
 .container {
     max-width: 1000px;
     margin: 4rem auto;
-    background: #ffffff;
+    background: #f9f9fa;
     border-radius: 16px;
     padding: 3rem 2rem;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
@@ -239,8 +248,12 @@ h2 {
     justify-content: space-between;
     margin-bottom: 0.75rem;
 }
+.score-content {
+    width: 100%;
+}
 
 .score-bar {
+    width: 100%;
     height: 10px;
     background: #f1f5f9;
     border-radius: 8px;
