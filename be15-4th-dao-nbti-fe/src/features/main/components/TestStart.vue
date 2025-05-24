@@ -67,6 +67,7 @@ function proceedTest() {
 
 <template>
     <div class="container">
+      <img src="@/assets/images/profile.png" alt="검사 이미지" class="test-image" />
         <h2>인지 능력 검사</h2>
         <p>
             {{ totalProblems }}문제의 간단한 두뇌 테스트를 통해<br />
@@ -110,6 +111,15 @@ function proceedTest() {
     font-size: 1rem;
     margin-bottom: 2rem;
     line-height: 1.5;
+}
+
+.test-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #f0f4ff;
+  padding: 0.5rem;
 }
 
 .btn {
