@@ -21,6 +21,6 @@ export function getTestResult(testResultId) {
 }
 
 /* 5. 검사 결과 마이페이지에 저장 하기 */
-export function saveResultToMyPage() {
-    return api.put('/test-result/my-page');
+export function saveResultToMyPage(testResultId) {
+    return api.put(`/test-result/${testResultId}/my-page`);
 }
