@@ -11,9 +11,9 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 // 모달 상태
-const isModalOpen = ref(false)
-const isLoginModalOpen = ref(false)
-const showGuideModal = ref(false)
+const isModalOpen = ref(false)        // 난이도 선택 모달
+const isLoginModalOpen = ref(false)   // 로그인 필요 안내 모달
+const showGuideModal = ref(false)     // 문제 답안 작성 안내 모달
 
 const selectedCategory = ref(null)
 const selectedLevel = ref(0)
@@ -54,6 +54,10 @@ function onLoginConfirm() {
 
 function onLoginCancel() {
   isLoginModalOpen.value = false
+}
+
+function onGuideCancel() {
+  showGuideModal.value = false
 }
 
 function startStudy() {
@@ -100,7 +104,7 @@ function startStudy() {
     <TestGuideModal
         :visible="showGuideModal"
         @confirm="startStudy"
-        @cancel="() => (showGuideModal.value = false)"
+        @cancel="onGuideCancel"
     />
   </div>
 </template>
