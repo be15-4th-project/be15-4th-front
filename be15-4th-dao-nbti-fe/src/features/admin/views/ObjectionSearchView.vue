@@ -140,6 +140,7 @@ const formatDateTimeWithWeekday = (datetimeStr) => {
         <table class="table">
           <thead>
           <tr>
+            <th>이의 제기 ID</th>
             <th>회원 ID</th>
             <th>문제 ID</th>
             <th>제출 일시</th>
@@ -149,6 +150,7 @@ const formatDateTimeWithWeekday = (datetimeStr) => {
           </thead>
           <tbody>
           <tr v-for="item in objections" :key="item.objectionId">
+            <td>{{ item.objectionId }}</td>
             <td>{{ item.accountId }}</td>
             <td>{{ item.problemId }}</td>
             <td>{{ formatDateTimeWithWeekday(item.createdAt) }}</td>
