@@ -13,6 +13,7 @@ import Header from "@/components/layout/Header.vue";
         <RouterView/>
       </main>
     </div>
+    <Footer/>
   </div>
 </template>
 
